@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class GameService {
@@ -24,7 +26,7 @@ public class GameService {
 
   String FIXED_PROMPT = "give me a random pc game idea. Use the following form for the answer:\n" +
       "Description: \n" +
-      "Protaganist type:\n" +
+      "Protagonist type:\n" +
       "Genre:";
 
   String URL = "https://api.openai.com/v1/chat/completions";
@@ -55,7 +57,7 @@ public class GameService {
 
     body.put("messages", messages);
 
-    body.put("temperature", 2);
+    body.put("temperature", 1);
 
 
     ObjectMapper mapper = new ObjectMapper();
@@ -79,20 +81,29 @@ public class GameService {
 
     //Needs to convert response value into String
 
-    String game = response.choices.get(0).text;
+    String game = response.choices.get(0).message.getContent();
 
-    int startDesc = game.indexOf("Description: ") + 13;
-    int endDesc = game.indexOf("\n \nProtaganist type:");
-    String description = game.substring(startDesc, endDesc);
+    System.out.println(game);
 
-// Extract the protagonist type string
-    int startProtag = game.indexOf("Protaganist type: ") + 18;
-    int endProtag = game.indexOf("\n\nGenre:");
-    String protagonistType = game.substring(startProtag, endProtag);
+    String[] gameResponseLines = game.split("\\r?\\n"); // Split the response string into lines
 
-// Extract the genre string
-    int startGenre = game.indexOf("Genre: ") + 7;
-    String genre = game.substring(startGenre);
+    String description = "";
+    String protagonistType = "";
+    String genre = "";
+
+    for (String line : gameResponseLines) {
+      if (line.startsWith("Description:")) {
+        description = line.substring(12); // Remove the "Description: " prefix
+      } else if (line.startsWith("Protagonist type:")) {
+        protagonistType = line.substring(18); // Remove the "Protagonist type: " prefix
+      } else if (line.startsWith("Genre:")) {
+        genre = line.substring(7); // Remove the "Genre: " prefix
+      }
+    }
+
+    System.out.println("Description: " + description);
+    System.out.println("Protagonist type: " + protagonistType);
+    System.out.println("Genre: " + genre);
 
 
     return new GameResponse(description, genre, protagonistType);

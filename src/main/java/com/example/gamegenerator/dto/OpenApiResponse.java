@@ -17,7 +17,7 @@ public class OpenApiResponse {
 
   @Getter
   public static class Choice {
-    public String text;
+    public Message message;
     public int index;
     public int logprobs;
     public String finish_reason;
@@ -33,7 +33,9 @@ public class OpenApiResponse {
     public int totalTokens;
   }
 
+  @Getter
   public static class Message {
-
+    public String role;
+    public String content;
   }
 }
