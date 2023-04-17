@@ -25,6 +25,7 @@ public class GameService {
   private String API_KEY;
 
   String FIXED_PROMPT = "give me a random pc game idea. Use the following form for the answer:\n" +
+      "Title: \n" +
       "Description: \n" +
       "Protagonist type:\n" +
       "Genre:";
@@ -87,13 +88,16 @@ public class GameService {
 
     String[] gameResponseLines = game.split("\\r?\\n"); // Split the response string into lines
 
+    String title = "";
     String description = "";
     String protagonistType = "";
     String genre = "";
 
     for (String line : gameResponseLines) {
-      if (line.startsWith("Description:")) {
-        description = line.substring(12); // Remove the "Description: " prefix
+      if (line.startsWith("Title:")) {
+        title = line.substring(7); // Remove the "Title: " prefix
+      } else if (line.startsWith("Description:")) {
+        description = line.substring(13); // Remove the "Description: " prefix
       } else if (line.startsWith("Protagonist type:")) {
         protagonistType = line.substring(18); // Remove the "Protagonist type: " prefix
       } else if (line.startsWith("Genre:")) {
@@ -101,12 +105,13 @@ public class GameService {
       }
     }
 
-    System.out.println("Description: " + description);
-    System.out.println("Protagonist type: " + protagonistType);
-    System.out.println("Genre: " + genre);
+    System.out.println(title);
+    System.out.println(description);
+    System.out.println(protagonistType);
+    System.out.println(genre);
 
 
-    return new GameResponse(description, genre, protagonistType);
+    return new GameResponse(title, description, genre, protagonistType);
 
   }
 
