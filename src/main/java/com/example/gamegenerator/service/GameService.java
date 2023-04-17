@@ -36,16 +36,6 @@ public class GameService {
 
   public GameResponse getGame() {
 
-/*    Map<String, Object> body = new HashMap<>();
-
-    body.put("model","gpt-3.5-turbo");
-    body.put("prompt", FIXED_PROMPT);
-    body.put("temperature", 1);
-    body.put("max_tokens", 50);
-    body.put("top_p", 1);
-    body.put("frequency_penalty", 2.0);
-    body.put("presence_penalty", -2.0);*/
-
     Map<String, Object> body = new HashMap<>();
 
     body.put("model", "gpt-3.5-turbo");
@@ -80,11 +70,13 @@ public class GameService {
         .bodyToMono(OpenApiResponse.class)
         .block();
 
-    //Needs to convert response value into String
+    //Converts response value into String
 
     String game = response.choices.get(0).message.getContent();
 
     System.out.println(game);
+
+    //Splits the String into four seperate Strings. Maybe it should be method by itself.
 
     String[] gameResponseLines = game.split("\\r?\\n"); // Split the response string into lines
 
