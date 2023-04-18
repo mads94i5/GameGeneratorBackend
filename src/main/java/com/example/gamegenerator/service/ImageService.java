@@ -8,7 +8,7 @@ import reactor.core.publisher.Mono;
 
 @Service
 public class ImageService {
-  private static final String API_URL = "https://api.openai.com/v1/images/generations";
+  private static final String API_URL = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2-1";
 
   @Value("${app.api-key-image}")
   private String API_KEY;

@@ -8,13 +8,11 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class ImageRequest {
-  private String model = "image-alpha-001";
-  private int numImages = 1;
-  private int sizeX = 512;
-  private int sizeY = 512;
-  private double scale = 1.0;
-  private double responseTimeoutInSeconds = 300.0;
   private String prompt;
+  private int numImages = 1;
+  private int size = 512;
+  private String model = "stabilityai/stable-diffusion-2-1";
+
 
   public ImageRequest(String prompt) {
     this.prompt = prompt;
