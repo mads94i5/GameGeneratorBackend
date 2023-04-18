@@ -122,7 +122,7 @@ public class GameService {
         List<String> images = new ArrayList<>();
         List<String> links = new ArrayList<>();
 
-        String[] games = similarGames.split("(?m)^#\\d+\\s"); // split the string by each game
+        String[] games = similarGames.split("(?m)(?<!^)\\G#\\d+\\s"); // split the string by each game
 
         for (int i = 1; i < games.length; i++) { // start from 1 since the first element is empty
             String[] lines = games[i].split("(?m)(?<=^|\\n)\\d+\\.\\s"); // split the game info into lines
