@@ -126,12 +126,12 @@ public class GameService {
 
         for (String game : games) {
             String[] info = game.split("\n");
-            titles.add(info[0].replaceAll("(?m)^\sTitle:\s", ""));
-            descriptions.add(info[1].replaceAll("(?m)^\sDescription:\s", ""));
-            playerTypes.add(info[2].replaceAll("(?m)^\sPlayer type:\s", ""));
-            genres.add(info[3].replaceAll("(?m)^\sGenre:\s", ""));
-            images.add(info[4].replaceAll("(?m)^\sImage:\s", ""));
-            links.add(info[5].replaceAll("(?m)^\sLink:\s", ""));
+            titles.add(info[0].replaceAll("(?m)^\\s*Title:\\s*(.*)", "$1"));
+            descriptions.add(info[1].replaceAll("(?m)^\\s*Description:\\s*(.*)", ""));
+            playerTypes.add(info[2].replaceAll("(?m)^\\s*Player type:\\s*(.*)", ""));
+            genres.add(info[3].replaceAll("(?m)^\\s*Genre:\\s*(.*)", ""));
+            images.add(info[4].replaceAll("(?m)^\\s*Image:\\s*(.*)", ""));
+            links.add(info[5].replaceAll("(?m)^\\s*Link:\\s*(.*)", ""));
         }
         return new SimilarGamesResponse(titles, descriptions, genres, playerTypes, images, links);
     }
