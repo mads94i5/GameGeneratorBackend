@@ -2,117 +2,168 @@ package com.example.gamegenerator.service;
 
 import com.example.gamegenerator.dto.GameResponse;
 import com.example.gamegenerator.dto.OpenApiResponse;
+import com.example.gamegenerator.dto.SimilarGamesResponse;
+import com.example.gamegenerator.entity.GameInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.BodyInserter;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Service
 public class GameService {
+    WebClient client = WebClient.create();
+    @Value("${app.api-key}")
+    private String API_KEY;
+    String URL = "https://api.openai.com/v1/chat/completions";
+    String GET_GAME_FIXED_PROMPT = "Give me a random unique video game idea. Use the following form for the answer:\n" +
+            "Title: \n" +
+            "Description: \n" +
+            "Player type: \n" +
+            "Genre:";
 
-  @Value("${app.api-key}")
-  private String API_KEY;
 
-  String FIXED_PROMPT = "give me a random pc game idea. Use the following form for the answer:\n" +
-      "Title: \n" +
-      "Description: \n" +
-      "Protagonist type:\n" +
-      "Genre:";
+    public GameInfo getGameInfo() {
+        GameResponse gameResponse = getGame();
+        GameInfo gameInfo = new GameInfo();
+        gameInfo.setTitle(gameResponse.getTitle());
+        gameInfo.setDescription(gameResponse.getDescription());
+        gameInfo.setGenre(gameResponse.getGenre());
+        gameInfo.setPlayer(gameResponse.getPlayer());
 
-  String URL = "https://api.openai.com/v1/chat/completions";
+        SimilarGamesResponse similarGamesResponse = getSimilarGames(gameResponse);
+        gameInfo.setTitles(similarGamesResponse.getTitles());
+        gameInfo.setDescriptions(similarGamesResponse.getDescriptions());
+        gameInfo.setGenres(similarGamesResponse.getGenres());
+        gameInfo.setPlayers(similarGamesResponse.getPlayers());
+        gameInfo.setImages(similarGamesResponse.getImages());
+        gameInfo.setLinks(similarGamesResponse.getLinks());
+        return gameInfo;
+    }
 
-  WebClient client = WebClient.create();
+    public GameResponse getGame() {
 
-  public GameResponse getGame() {
-
-/*    Map<String, Object> body = new HashMap<>();
+    /*    Map<String, Object> body = new HashMap<>();
 
     body.put("model","gpt-3.5-turbo");
-    body.put("prompt", FIXED_PROMPT);
+    body.put("prompt", GET_GAME_FIXED_PROMPT);
     body.put("temperature", 1);
     body.put("max_tokens", 50);
     body.put("top_p", 1);
     body.put("frequency_penalty", 2.0);
-    body.put("presence_penalty", -2.0);*/
+    body.put("presence_penalty", -2.0);
 
-    Map<String, Object> body = new HashMap<>();
+    */
 
-    body.put("model", "gpt-3.5-turbo");
+        OpenApiResponse response = getApiResponse(GET_GAME_FIXED_PROMPT);
 
-    List<Map<String, String>> messages = new ArrayList<>();
-    Map<String, String> message = new HashMap<>();
-    message.put("role", "user");
-    message.put("content", FIXED_PROMPT);
-    messages.add(message);
+        String game = response.choices.get(0).message.getContent();
 
-    body.put("messages", messages);
+        System.out.println(game);
 
-    body.put("temperature", 1);
+        String[] gameResponseLines = game.split("\\r?\\n");
 
+        String title = "";
+        String description = "";
+        String playerType = "";
+        String genre = "";
 
-    ObjectMapper mapper = new ObjectMapper();
-    String json = "";
-    try {
-      json = mapper.writeValueAsString(body);
-    } catch (Exception e) {
-      e.printStackTrace();
+        for (String line : gameResponseLines) {
+            if (line.startsWith("Title:")) {
+                title = line.substring(7);
+            } else if (line.startsWith("Description:")) {
+                description = line.substring(13);
+            } else if (line.startsWith("Player type:")) {
+                playerType = line.substring(18);
+            } else if (line.startsWith("Genre:")) {
+                genre = line.substring(7);
+            }
+        }
+
+        System.out.println(title);
+        System.out.println(description);
+        System.out.println(playerType);
+        System.out.println(genre);
+
+        return new GameResponse(title, description, genre, playerType);
     }
 
+    public SimilarGamesResponse getSimilarGames(GameResponse gameResponse) {
 
-    OpenApiResponse response = client.post()
-        .uri(URL)
-        .header("Authorization", "Bearer " + API_KEY)
-        .contentType(MediaType.APPLICATION_JSON)
-        .accept(MediaType.APPLICATION_JSON)
-        .body(BodyInserters.fromValue(json))
-        .retrieve()
-        .bodyToMono(OpenApiResponse.class)
-        .block();
+        String GET_SIMILAR_GAMES_FIXED_PROMPT = "Give me five similar games from steam from this information:\n" +
+                "Title: " + gameResponse.getTitle() + " \n" +
+                "Description: " + gameResponse.getDescription() + " \n" +
+                "Player type: " + gameResponse.getPlayer() + " \n" +
+                "Genre: " + gameResponse.getGenre() + " \n" +
+                "Use the following form for the answers, make sure you give the links and images to the games on steam and replace #1 with the game number:\n" +
+                "#1 Title: \n" +
+                "#1 Description: \n" +
+                "#1 Player type: \n" +
+                "#1 Genre: \n" +
+                "#1 Image: <Give the URL from steam image> \n" +
+                "#1 Link: <Give the URL from steam>";
 
-    //Needs to convert response value into String
+        OpenApiResponse response = getApiResponse(GET_SIMILAR_GAMES_FIXED_PROMPT);
 
-    String game = response.choices.get(0).message.getContent();
+        String similarGames = response.choices.get(0).message.getContent();
 
-    System.out.println(game);
+        System.out.println(similarGames);
 
-    String[] gameResponseLines = game.split("\\r?\\n"); // Split the response string into lines
+        List<String> titles = new ArrayList<>();
+        List<String> descriptions = new ArrayList<>();
+        List<String> playerTypes = new ArrayList<>();
+        List<String> genres = new ArrayList<>();
+        List<String> images = new ArrayList<>();
+        List<String> links = new ArrayList<>();
 
-    String title = "";
-    String description = "";
-    String protagonistType = "";
-    String genre = "";
+        String[] games = similarGames.split("(?m)^#\\d+\\s"); // split the string by each game
 
-    for (String line : gameResponseLines) {
-      if (line.startsWith("Title:")) {
-        title = line.substring(7); // Remove the "Title: " prefix
-      } else if (line.startsWith("Description:")) {
-        description = line.substring(13); // Remove the "Description: " prefix
-      } else if (line.startsWith("Protagonist type:")) {
-        protagonistType = line.substring(18); // Remove the "Protagonist type: " prefix
-      } else if (line.startsWith("Genre:")) {
-        genre = line.substring(7); // Remove the "Genre: " prefix
-      }
+        for (int i = 1; i < games.length; i++) { // start from 1 since the first element is empty
+            String[] lines = games[i].split("\n"); // split the game info into lines
+            titles.add(lines[0].replaceAll("^\\s*Title:\\s*", ""));
+            descriptions.add(lines[1].replaceAll("^\\s*Description:\\s*", ""));
+            playerTypes.add(lines[2].replaceAll("^\\s*Player type:\\s*", ""));
+            genres.add(lines[3].replaceAll("^\\s*Genre:\\s*", ""));
+            images.add(lines[4].replaceAll("^\\s*Image:\\s*", ""));
+            links.add(lines[5].replaceAll("^\\s*Link:\\s*", ""));
+        }
+        return new SimilarGamesResponse(titles, descriptions, genres, playerTypes, images, links);
     }
 
-    System.out.println(title);
-    System.out.println(description);
-    System.out.println(protagonistType);
-    System.out.println(genre);
+    private OpenApiResponse getApiResponse(String prompt) {
+        Map<String, Object> body = new HashMap<>();
 
+        body.put("model", "gpt-3.5-turbo");
+        List<Map<String, String>> messages = new ArrayList<>();
+        Map<String, String> message = new HashMap<>();
+        message.put("role", "user");
+        message.put("content", prompt);
+        messages.add(message);
+        body.put("messages", messages);
+        body.put("temperature", 1);
 
-    return new GameResponse(title, description, genre, protagonistType);
+        ObjectMapper mapper = new ObjectMapper();
+        String json = "";
+        try {
+            json = mapper.writeValueAsString(body);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-  }
-
+        return client.post()
+                .uri(URL)
+                .header("Authorization", "Bearer " + API_KEY)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(json))
+                .retrieve()
+                .bodyToMono(OpenApiResponse.class)
+                .block();
+    }
 }

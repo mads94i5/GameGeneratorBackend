@@ -10,18 +10,18 @@ import lombok.Setter;
 @NoArgsConstructor
 public class GameResponse {
 
-  String title;
+    private String title;
 
-  String description;
+    private String description;
 
-  String genre;
+    private String genre;
 
-  String protagonist;
+    private String player;
 
-  public GameResponse(String title, String description, String genre, String protagonist) {
-    this.title = title;
-    this.description = description;
-    this.genre = genre;
-    this.protagonist = protagonist;
-  }
+    public GameResponse(String title, String description, String genre, String player) {
+        this.title = title;
+        this.description = description;
+        this.genre = genre;
+        this.player = player;
+    }
 }
