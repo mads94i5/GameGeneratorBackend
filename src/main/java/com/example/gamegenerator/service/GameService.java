@@ -22,7 +22,7 @@ public class GameService {
     @Value("${app.api-key}")
     private String API_KEY;
     String URL = "https://api.openai.com/v1/chat/completions";
-    String GET_GAME_FIXED_PROMPT = "Give me a random unique video game idea. Use the following form for the answer:\n" +
+    String GET_GAME_FIXED_PROMPT = "Give me a random unique video game idea. Use the following form for the answer, where player type is what the player is playing as:\n" +
             "Title: \n" +
             "Description: \n" +
             "Player type: \n" +
