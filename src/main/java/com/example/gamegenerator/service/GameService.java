@@ -101,7 +101,7 @@ public class GameService {
                 "Description: " + gameResponse.getDescription() + " \n" +
                 "Player type: " + gameResponse.getPlayer() + " \n" +
                 "Genre: " + gameResponse.getGenre() + " \n" +
-                "Use the following form for the answers, make sure you give the links and images to the games on steam and replace #1 with the game number:\n" +
+                "Use the following form for the answers, make sure you give the links and images to the games on steam and replace #1 with the game number and where player type is what the player is playing as:\n" +
                 "#1 Title: \n" +
                 "#1 Description: \n" +
                 "#1 Player type: \n" +
@@ -126,12 +126,12 @@ public class GameService {
 
         for (String game : games) {
             String[] info = game.split("\n");
-            titles.add(info[0].replaceAll("^\sTitle:\s", ""));
-            descriptions.add(info[1].replaceAll("^\sDescription:\s", ""));
-            playerTypes.add(info[2].replaceAll("^\sPlayer type:\s", ""));
-            genres.add(info[3].replaceAll("^\sGenre:\s", ""));
-            images.add(info[4].replaceAll("^\sImage:\s", ""));
-            links.add(info[5].replaceAll("^\sLink:\s", ""));
+            titles.add(info[0].replaceAll("(?m)^\sTitle:\s", ""));
+            descriptions.add(info[1].replaceAll("(?m)^\sDescription:\s", ""));
+            playerTypes.add(info[2].replaceAll("(?m)^\sPlayer type:\s", ""));
+            genres.add(info[3].replaceAll("(?m)^\sGenre:\s", ""));
+            images.add(info[4].replaceAll("(?m)^\sImage:\s", ""));
+            links.add(info[5].replaceAll("(?m)^\sLink:\s", ""));
         }
         return new SimilarGamesResponse(titles, descriptions, genres, playerTypes, images, links);
     }
