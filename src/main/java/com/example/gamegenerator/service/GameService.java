@@ -122,16 +122,16 @@ public class GameService {
         List<String> images = new ArrayList<>();
         List<String> links = new ArrayList<>();
 
-        String[] games = similarGames.split("(?m)(?<!^)\\G#\\d+\\s"); // split the string by each game
+        String[] games = similarGames.split("\n\n");
 
-        for (int i = 1; i < games.length; i++) { // start from 1 since the first element is empty
-            String[] lines = games[i].split("(?m)(?<=^|\\n)\\d+\\.\\s"); // split the game info into lines
-            titles.add(lines[0].replaceAll("^\\s*Title:\\s*", ""));
-            descriptions.add(lines[1].replaceAll("^\\s*Description:\\s*", ""));
-            playerTypes.add(lines[2].replaceAll("^\\s*Player type:\\s*", ""));
-            genres.add(lines[3].replaceAll("^\\s*Genre:\\s*", ""));
-            images.add(lines[4].replaceAll("^\\s*Image:\\s*", ""));
-            links.add(lines[5].replaceAll("^\\s*Link:\\s*", ""));
+        for (String game : games) {
+            String[] info = game.split("\n");
+            titles.add(info[0].replaceAll("^\sTitle:\s", ""));
+            descriptions.add(info[1].replaceAll("^\sDescription:\s", ""));
+            playerTypes.add(info[2].replaceAll("^\sPlayer type:\s", ""));
+            genres.add(info[3].replaceAll("^\sGenre:\s", ""));
+            images.add(info[4].replaceAll("^\sImage:\s", ""));
+            links.add(info[5].replaceAll("^\sLink:\s", ""));
         }
         return new SimilarGamesResponse(titles, descriptions, genres, playerTypes, images, links);
     }
