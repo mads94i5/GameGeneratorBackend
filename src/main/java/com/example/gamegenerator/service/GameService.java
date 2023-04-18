@@ -80,7 +80,7 @@ public class GameService {
             } else if (line.startsWith("Description:")) {
                 description = line.substring(13);
             } else if (line.startsWith("Player type:")) {
-                playerType = line.substring(18);
+                playerType = line.substring(13);
             } else if (line.startsWith("Genre:")) {
                 genre = line.substring(7);
             }
