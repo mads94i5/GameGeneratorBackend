@@ -8,7 +8,7 @@ import reactor.core.publisher.Mono;
 
 @Service
 public class ImageService {
-  private static final String API_URL = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2-1";
+  private static final String API_URL = "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5";
 
   @Value("${app.api-key-image}")
   private String API_KEY;
@@ -20,7 +20,7 @@ public class ImageService {
   public byte[] generateImage(String prompt) {
     // Set up request data
     ImageRequest request = new ImageRequest();
-    request.setPrompt(prompt);
+    request.setInputs(prompt);
 
 
     // Make request to API
