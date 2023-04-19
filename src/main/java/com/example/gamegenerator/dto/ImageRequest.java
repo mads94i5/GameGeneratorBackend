@@ -9,9 +9,9 @@ import lombok.Setter;
 @NoArgsConstructor
 public class ImageRequest {
   private String prompt;
-  private int numImages = 1;
-  private int size = 512;
-  private String model = "stabilityai/stable-diffusion-2-1";
+  private int numImages;
+  private int size;
+  private String model;
 
 
   public ImageRequest(String prompt) {

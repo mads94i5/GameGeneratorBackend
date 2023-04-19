@@ -4,6 +4,7 @@ import com.example.gamegenerator.dto.GameResponse;
 import com.example.gamegenerator.dto.OpenApiResponse;
 import com.example.gamegenerator.dto.SimilarGamesResponse;
 import com.example.gamegenerator.entity.GameInfo;
+import com.example.gamegenerator.repository.GameRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -18,50 +19,51 @@ import java.util.Map;
 
 @Service
 public class GameService {
-    WebClient client = WebClient.create();
+    private final GameRepository gameRepository;
+    private final WebClient client = WebClient.create();
     @Value("${app.api-key}")
-    private String API_KEY;
-    String URL = "https://api.openai.com/v1/chat/completions";
-    String GET_GAME_FIXED_PROMPT = "Give me a random unique video game idea. Use the following form for the answer, where player type is what the player is playing as:\n" +
-            "Title: \n" +
-            "Description: \n" +
-            "Player type: \n" +
-            "Genre:";
+    private String OPENAI_API_KEY;
+    String OPENAI_URL = "https://api.openai.com/v1/chat/completions";
+    public GameService(GameRepository gameRepository) {
+        this.gameRepository = gameRepository;
+    }
 
-
-    public GameInfo getGameInfo() {
-        GameResponse gameResponse = getGame();
+    public GameInfo getGameInfo(Long id) {
+        return gameRepository.findById(id).orElse(null);
+    }
+    public List<GameInfo> getAllGameInfo() {
+        return gameRepository.findAll();
+    }
+    public GameInfo createGameInfo() {
+        GameResponse gameResponse = getGameFromApi();
         GameInfo gameInfo = new GameInfo();
         gameInfo.setTitle(gameResponse.getTitle());
         gameInfo.setDescription(gameResponse.getDescription());
         gameInfo.setGenre(gameResponse.getGenre());
         gameInfo.setPlayer(gameResponse.getPlayer());
+        // TODO: Add image to gameInfo
+        // gameInfo.setImage();
 
-        SimilarGamesResponse similarGamesResponse = getSimilarGames(gameResponse);
+        SimilarGamesResponse similarGamesResponse = getSimilarGamesFromApi(gameResponse);
         gameInfo.setTitles(similarGamesResponse.getTitles());
         gameInfo.setDescriptions(similarGamesResponse.getDescriptions());
         gameInfo.setGenres(similarGamesResponse.getGenres());
         gameInfo.setPlayers(similarGamesResponse.getPlayers());
         gameInfo.setImages(similarGamesResponse.getImages());
         gameInfo.setLinks(similarGamesResponse.getLinks());
+
+        gameRepository.save(gameInfo);
         return gameInfo;
     }
 
-    public GameResponse getGame() {
+    public GameResponse getGameFromApi() {
+        String GET_GAME_FIXED_PROMPT = "Give me a random unique video game idea. Use the following form for the answer, where player type is what the player is playing as:\n" +
+                "Title: \n" +
+                "Description: \n" +
+                "Player type: \n" +
+                "Genre:";
 
-    /*    Map<String, Object> body = new HashMap<>();
-
-    body.put("model","gpt-3.5-turbo");
-    body.put("prompt", GET_GAME_FIXED_PROMPT);
-    body.put("temperature", 1);
-    body.put("max_tokens", 50);
-    body.put("top_p", 1);
-    body.put("frequency_penalty", 2.0);
-    body.put("presence_penalty", -2.0);
-
-    */
-
-        OpenApiResponse response = getApiResponse(GET_GAME_FIXED_PROMPT);
+        OpenApiResponse response = getOpenAiApiResponse(GET_GAME_FIXED_PROMPT);
 
         String game = response.choices.get(0).message.getContent();
 
@@ -94,7 +96,7 @@ public class GameService {
         return new GameResponse(title, description, genre, playerType);
     }
 
-    public SimilarGamesResponse getSimilarGames(GameResponse gameResponse) {
+    public SimilarGamesResponse getSimilarGamesFromApi(GameResponse gameResponse) {
 
         String GET_SIMILAR_GAMES_FIXED_PROMPT = "Give me five similar games from steam from this information:\n" +
                 "Title: " + gameResponse.getTitle() + " \n" +
@@ -106,10 +108,10 @@ public class GameService {
                 "#1 Description: \n" +
                 "#1 Player type: \n" +
                 "#1 Genre: \n" +
-                "#1 Image: <Give the URL from steam image> \n" +
-                "#1 Link: <Give the URL from steam>";
+                "#1 Image: <Give the OPENAI_URL from steam image> \n" +
+                "#1 Link: <Give the OPENAI_URL from steam>";
 
-        OpenApiResponse response = getApiResponse(GET_SIMILAR_GAMES_FIXED_PROMPT);
+        OpenApiResponse response = getOpenAiApiResponse(GET_SIMILAR_GAMES_FIXED_PROMPT);
 
         String similarGames = response.choices.get(0).message.getContent();
 
@@ -136,7 +138,18 @@ public class GameService {
         return new SimilarGamesResponse(titles, descriptions, genres, playerTypes, images, links);
     }
 
-    private OpenApiResponse getApiResponse(String prompt) {
+    private OpenApiResponse getOpenAiApiResponse(String prompt) {
+    /*
+    Map<String, Object> body = new HashMap<>();
+
+    body.put("model","gpt-3.5-turbo");
+    body.put("prompt", prompt);
+    body.put("temperature", 1);
+    body.put("max_tokens", 50);
+    body.put("top_p", 1);
+    body.put("frequency_penalty", 2.0);
+    body.put("presence_penalty", -2.0);
+    */
         Map<String, Object> body = new HashMap<>();
 
         body.put("model", "gpt-3.5-turbo");
@@ -157,8 +170,8 @@ public class GameService {
         }
 
         return client.post()
-                .uri(URL)
-                .header("Authorization", "Bearer " + API_KEY)
+                .uri(OPENAI_URL)
+                .header("Authorization", "Bearer " + OPENAI_API_KEY)
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromValue(json))
