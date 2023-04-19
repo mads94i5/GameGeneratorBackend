@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 
 @RestController
 @RequestMapping("/api/gameidea")
@@ -23,9 +25,19 @@ public class GameController {
         this.imageService = imageService;
     }
 
-    @GetMapping
-    public GameInfo getGame() {
-        return gameService.getGameInfo();
+    @GetMapping("/create")
+    public GameInfo createGame() {
+        return gameService.createGameInfo();
+    }
+
+    @GetMapping("/get/{id}")
+    public GameInfo getGame(@PathVariable Long id) {
+        return gameService.getGameInfo(id);
+    }
+
+    @GetMapping("/get-all")
+    public List<GameInfo> getAllGames() {
+        return gameService.getAllGameInfo();
     }
 
     @GetMapping("/imagegenerator/{prompt}")
