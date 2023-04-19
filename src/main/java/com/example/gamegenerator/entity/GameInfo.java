@@ -15,13 +15,14 @@ import java.util.List;
 @NoArgsConstructor
 public class GameInfo {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Long id;
     private String title;
     private String description;
     private String genre;
     private String player;
+    private byte[] image;
     @ElementCollection
     private List<String> titles;
     @ElementCollection
