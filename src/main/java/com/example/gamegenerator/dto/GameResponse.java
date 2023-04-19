@@ -1,6 +1,7 @@
 package com.example.gamegenerator.dto;
 
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -8,6 +9,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class GameResponse {
 
     private String title;
@@ -17,11 +19,4 @@ public class GameResponse {
     private String genre;
 
     private String player;
-
-    public GameResponse(String title, String description, String genre, String player) {
-        this.title = title;
-        this.description = description;
-        this.genre = genre;
-        this.player = player;
-    }
 }
