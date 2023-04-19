@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 
 @RestController
-@RequestMapping("api/game-idea")
+@RequestMapping("/api/gameidea")
 public class GameController {
 
     private GameService gameService;
@@ -28,7 +28,7 @@ public class GameController {
         return gameService.getGameInfo();
     }
 
-    @GetMapping("/image-generator/{prompt}")
+    @GetMapping("/imagegenerator/{prompt}")
     public byte[] getImage(@PathVariable String prompt){
         return imageService.generateImage(prompt);
     }
