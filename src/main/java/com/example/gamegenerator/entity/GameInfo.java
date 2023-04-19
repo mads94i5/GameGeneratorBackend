@@ -19,12 +19,15 @@ public class GameInfo {
     @Column(name = "id", nullable = false)
     private Long id;
     private String title;
+
+    @Column(columnDefinition = "TEXT(10000)")
     private String description;
     private String genre;
     private String player;
     private byte[] image;
     @ElementCollection
     private List<String> titles;
+    @Column(columnDefinition = "TEXT(10000)")
     @ElementCollection
     private List<String> descriptions;
     @ElementCollection

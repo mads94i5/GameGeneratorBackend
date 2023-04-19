@@ -1,5 +1,8 @@
 package com.example.gamegenerator.dto;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Lob;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,6 +16,7 @@ import java.util.List;
 @AllArgsConstructor
 public class SimilarGamesResponse {
     private List<String> titles;
+
     private List<String> descriptions;
     private List<String> genres;
     private List<String> players;
