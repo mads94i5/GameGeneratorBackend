@@ -13,7 +13,10 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
     private static final String[] ALLOWED_ORIGINS = new String[] {
         //Add deployed frontend url to this list
         "http://localhost:5500",
-        "http://127.0.0.1:5500"
+        "http://127.0.0.1:5500",
+        "https://gameideagenerator.thomassa.dk",
+        "agreeable-moss-0a2f48003.3.azurestaticapps.net"
+
     };
 
     @Override

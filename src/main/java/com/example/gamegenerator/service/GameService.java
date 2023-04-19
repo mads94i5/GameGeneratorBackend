@@ -11,7 +11,9 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -19,13 +21,16 @@ import java.util.Map;
 
 @Service
 public class GameService {
+
+    public ImageService imageService;
     private final GameRepository gameRepository;
     private final WebClient client = WebClient.create();
     @Value("${app.api-key}")
     private String OPENAI_API_KEY;
     String OPENAI_URL = "https://api.openai.com/v1/chat/completions";
-    public GameService(GameRepository gameRepository) {
+    public GameService(GameRepository gameRepository, ImageService imageService) {
         this.gameRepository = gameRepository;
+        this.imageService = imageService;
     }
 
     public GameInfo getGameInfo(Long id) {
@@ -41,8 +46,7 @@ public class GameService {
         gameInfo.setDescription(gameResponse.getDescription());
         gameInfo.setGenre(gameResponse.getGenre());
         gameInfo.setPlayer(gameResponse.getPlayer());
-        // TODO: Add image to gameInfo
-        // gameInfo.setImage();
+        gameInfo.setImage(getImage(gameResponse.getGenre(), gameResponse.getPlayer()));
 
         SimilarGamesResponse similarGamesResponse = getSimilarGamesFromApi(gameResponse);
         gameInfo.setTitles(similarGamesResponse.getTitles());
@@ -55,6 +59,7 @@ public class GameService {
         gameRepository.save(gameInfo);
         return gameInfo;
     }
+
 
     public GameResponse getGameFromApi() {
         String GET_GAME_FIXED_PROMPT = "Give me a random unique video game idea. Use the following form for the answer, where player type is what the player is playing as:\n" +
@@ -87,6 +92,8 @@ public class GameService {
                 genre = line.substring(7);
             }
         }
+
+
 
         System.out.println(title);
         System.out.println(description);
@@ -138,18 +145,9 @@ public class GameService {
         return new SimilarGamesResponse(titles, descriptions, genres, playerTypes, images, links);
     }
 
-    private OpenApiResponse getOpenAiApiResponse(String prompt) {
-    /*
-    Map<String, Object> body = new HashMap<>();
 
-    body.put("model","gpt-3.5-turbo");
-    body.put("prompt", prompt);
-    body.put("temperature", 1);
-    body.put("max_tokens", 50);
-    body.put("top_p", 1);
-    body.put("frequency_penalty", 2.0);
-    body.put("presence_penalty", -2.0);
-    */
+    private OpenApiResponse getOpenAiApiResponse(String prompt) {
+
         Map<String, Object> body = new HashMap<>();
 
         body.put("model", "gpt-3.5-turbo");
@@ -178,5 +176,14 @@ public class GameService {
                 .retrieve()
                 .bodyToMono(OpenApiResponse.class)
                 .block();
+    }
+
+    public byte[] getImage(String genre, String playerType){
+
+        String FIXED_IMAGE_PROMPT = "Give me a picture of a cover for a PC-game that has " + genre + " as genre and " + playerType + " as playertype";
+
+        byte[] image = imageService.generateImage(FIXED_IMAGE_PROMPT);
+
+        return image;
     }
 }

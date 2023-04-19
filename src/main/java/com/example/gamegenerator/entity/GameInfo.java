@@ -1,5 +1,6 @@
 package com.example.gamegenerator.entity;
 
+import com.example.gamegenerator.util.DataCompressionUtils;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -24,6 +25,7 @@ public class GameInfo {
     private String description;
     private String genre;
     private String player;
+    @Column(columnDefinition = "BLOB")
     private byte[] image;
     @ElementCollection
     private List<String> titles;
@@ -38,4 +40,12 @@ public class GameInfo {
     private List<String> images;
     @ElementCollection
     private List<String> links;
+
+    public void setImage(byte[] data) {
+        this.image = DataCompressionUtils.compress(data);
+    }
+
+    public byte[] getImage() {
+        return DataCompressionUtils.decompress(this.image);
+    }
 }
