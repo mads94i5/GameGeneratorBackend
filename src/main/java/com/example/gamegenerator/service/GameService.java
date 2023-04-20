@@ -1,6 +1,7 @@
 package com.example.gamegenerator.service;
 
 import com.example.gamegenerator.dto.GameResponse;
+import com.example.gamegenerator.dto.ImageRequest;
 import com.example.gamegenerator.dto.OpenApiResponse;
 import com.example.gamegenerator.dto.SimilarGamesResponse;
 import com.example.gamegenerator.entity.GameInfo;
@@ -13,7 +14,6 @@ import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-import java.awt.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,16 +22,17 @@ import java.util.Map;
 
 @Service
 public class GameService {
-
-    public ImageService imageService;
     private final GameRepository gameRepository;
     private final WebClient client = WebClient.create();
+    String OPENAI_URL = "https://api.openai.com/v1/chat/completions";
     @Value("${app.api-key}")
     private String OPENAI_API_KEY;
-    String OPENAI_URL = "https://api.openai.com/v1/chat/completions";
-    public GameService(GameRepository gameRepository, ImageService imageService) {
+    private final String IMAGE_API_URL = "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5";
+    @Value("${app.api-key-image}")
+    private String IMAGE_API_KEY;
+
+    public GameService(GameRepository gameRepository) {
         this.gameRepository = gameRepository;
-        this.imageService = imageService;
     }
 
     public GameInfo getGameInfo(Long id) {
@@ -77,7 +78,7 @@ public class GameService {
 
 
     public GameResponse getGameFromApi() {
-        System.out.println(LocalDateTime.now() + " getGameFromApi");
+        System.out.println(LocalDateTime.now() + " getGameFromApi() called");
 
         String GET_GAME_FIXED_PROMPT = "Give me a random unique video game idea. Use the following form for the answer, where player type is what the player is playing as:\n" +
                 "Title: \n" +
@@ -88,8 +89,6 @@ public class GameService {
         OpenApiResponse response = getOpenAiApiResponse(GET_GAME_FIXED_PROMPT).block();;
 
         String game = response.choices.get(0).message.getContent();
-
-        System.out.println(game);
 
         String[] gameResponseLines = game.split("\\r?\\n");
 
@@ -110,8 +109,6 @@ public class GameService {
             }
         }
 
-
-
         System.out.println(title);
         System.out.println(description);
         System.out.println(playerType);
@@ -121,7 +118,7 @@ public class GameService {
     }
 
     public Mono<SimilarGamesResponse> getSimilarGamesFromApi(GameResponse gameResponse) {
-        System.out.println(LocalDateTime.now() + " getSimilarGamesFromApi");
+        System.out.println(LocalDateTime.now() + " getSimilarGamesFromApi() called");
 
         String GET_SIMILAR_GAMES_FIXED_PROMPT = "Give me five similar games from steam from this information:\n" +
             "Title: " + gameResponse.getTitle() + " \n" +
@@ -162,7 +159,6 @@ public class GameService {
             });
     }
 
-
     private Mono<OpenApiResponse> getOpenAiApiResponse(String prompt) {
 
         Map<String, Object> body = new HashMap<>();
@@ -195,17 +191,29 @@ public class GameService {
     }
 
     public Mono<byte[]> createImage(GameResponse gameResponse){
-        System.out.println(LocalDateTime.now() + " createImage");
+        System.out.println(LocalDateTime.now() + " createImage() called");
 
-        String FIXED_IMAGE_PROMPT = "Give me a picture of a cover for a video game that has this information:\n" +
+        String FIXED_IMAGE_PROMPT = "Give me a picture of a cover for a video game that has the following information, where player type is what the player is playing as:\n" +
             "Title: " + gameResponse.getTitle() + " \n" +
             "Description: " + gameResponse.getDescription() + " \n" +
             "Player type: " + gameResponse.getPlayer() + " \n" +
             "Genre: " + gameResponse.getGenre();
 
+        return generateImage(FIXED_IMAGE_PROMPT);
+    }
 
-        Mono<byte[]> image = imageService.generateImage(FIXED_IMAGE_PROMPT);
+    public Mono<byte[]> generateImage(String prompt) {
+        // Set up request data
+        ImageRequest request = new ImageRequest();
+        request.setInputs(prompt);
 
-        return image;
+        // Return request to API
+        return client.post()
+                .uri(IMAGE_API_URL)
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Bearer " + IMAGE_API_KEY)
+                .body(Mono.just(request), ImageRequest.class)
+                .retrieve()
+                .bodyToMono(byte[].class);
     }
 }
