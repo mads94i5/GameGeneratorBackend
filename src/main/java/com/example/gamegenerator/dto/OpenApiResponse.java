@@ -7,7 +7,6 @@ import java.util.List;
 
 @Getter
 public class OpenApiResponse {
-
     public String id;
     public String object;
     public long created;

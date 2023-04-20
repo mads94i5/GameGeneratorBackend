@@ -10,12 +10,8 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GameResponse {
-
     private String title;
-
     private String description;
-
     private String genre;
-
     private String player;
 }

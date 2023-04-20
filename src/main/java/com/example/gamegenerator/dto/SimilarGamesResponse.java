@@ -13,7 +13,6 @@ import java.util.List;
 @AllArgsConstructor
 public class SimilarGamesResponse {
     private List<String> titles;
-
     private List<String> descriptions;
     private List<String> genres;
     private List<String> players;
