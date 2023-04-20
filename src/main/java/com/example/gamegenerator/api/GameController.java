@@ -1,7 +1,5 @@
 package com.example.gamegenerator.api;
 
-
-import com.example.gamegenerator.dto.GameResponse;
 import com.example.gamegenerator.entity.GameInfo;
 import com.example.gamegenerator.service.GameService;
 import com.example.gamegenerator.service.ImageService;
@@ -9,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 
@@ -27,7 +26,9 @@ public class GameController {
 
     @GetMapping("/create")
     public GameInfo createGame() {
-        return gameService.createGameInfo();
+        GameInfo gameInfo = gameService.createGameInfo();
+        System.out.println(gameInfo.getTitle());
+        return gameInfo;
     }
 
     @GetMapping("/get/{id}")
@@ -40,8 +41,8 @@ public class GameController {
         return gameService.getAllGameInfo();
     }
 
-    @GetMapping("/imagegenerator/{prompt}")
+/*    @GetMapping("/imagegenerator/{prompt}")
     public byte[] getImage(@PathVariable String prompt){
         return imageService.generateImage(prompt);
-    }
+    }*/
 }

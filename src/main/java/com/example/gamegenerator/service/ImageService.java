@@ -17,23 +17,21 @@ public class ImageService {
 
 
 
-  public byte[] generateImage(String prompt) {
+  public Mono<byte[]> generateImage(String prompt) {
     // Set up request data
     ImageRequest request = new ImageRequest();
     request.setInputs(prompt);
 
 
     // Make request to API
-    byte[] responseBytes = webClient.post()
+
+    return webClient.post()
         .uri(API_URL)
         .header("Content-Type", "application/json")
         .header("Authorization", "Bearer " + API_KEY)
         .body(Mono.just(request), ImageRequest.class)
         .retrieve()
-        .bodyToMono(byte[].class)
-        .block();
-
-    return responseBytes;
+        .bodyToMono(byte[].class);
   }
 
 

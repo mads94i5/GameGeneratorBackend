@@ -25,7 +25,7 @@ public class GameInfo {
     private String description;
     private String genre;
     private String player;
-    @Column(columnDefinition = "BLOB")
+    @Column(columnDefinition = "LONGBLOB")
     private byte[] image;
     @ElementCollection
     private List<String> titles;
@@ -41,8 +41,8 @@ public class GameInfo {
     @ElementCollection
     private List<String> links;
 
-    public void setImage(byte[] data) {
-        this.image = DataCompressionUtils.compress(data);
+    public void setImage(byte[] image) {
+        this.image = DataCompressionUtils.compress(image);
     }
 
     public byte[] getImage() {

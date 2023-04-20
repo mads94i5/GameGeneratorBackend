@@ -14,6 +14,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.awt.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -39,6 +40,7 @@ public class GameService {
     public List<GameInfo> getAllGameInfo() {
         return gameRepository.findAll();
     }
+
     public GameInfo createGameInfo() {
         GameResponse gameResponse = getGameFromApi();
         GameInfo gameInfo = new GameInfo();
@@ -46,29 +48,44 @@ public class GameService {
         gameInfo.setDescription(gameResponse.getDescription());
         gameInfo.setGenre(gameResponse.getGenre());
         gameInfo.setPlayer(gameResponse.getPlayer());
-        gameInfo.setImage(getImage(gameResponse.getGenre(), gameResponse.getPlayer()));
 
-        SimilarGamesResponse similarGamesResponse = getSimilarGamesFromApi(gameResponse);
-        gameInfo.setTitles(similarGamesResponse.getTitles());
-        gameInfo.setDescriptions(similarGamesResponse.getDescriptions());
-        gameInfo.setGenres(similarGamesResponse.getGenres());
-        gameInfo.setPlayers(similarGamesResponse.getPlayers());
-        gameInfo.setImages(similarGamesResponse.getImages());
-        gameInfo.setLinks(similarGamesResponse.getLinks());
+        Mono<byte[]> imageMono = createImage(gameResponse);
+        Mono<SimilarGamesResponse> similarGamesResponseMono = getSimilarGamesFromApi(gameResponse);
 
-        gameRepository.save(gameInfo);
-        return gameInfo;
+        Mono<GameInfo> gameInfoMono = Mono.zip(imageMono, similarGamesResponseMono)
+            .map(tuple -> {
+                byte[] image = tuple.getT1();
+                SimilarGamesResponse similarGamesResponse = tuple.getT2();
+
+                gameInfo.setImage(image);
+                gameInfo.setTitles(similarGamesResponse.getTitles());
+                gameInfo.setDescriptions(similarGamesResponse.getDescriptions());
+                gameInfo.setGenres(similarGamesResponse.getGenres());
+                gameInfo.setPlayers(similarGamesResponse.getPlayers());
+                gameInfo.setImages(similarGamesResponse.getImages());
+                gameInfo.setLinks(similarGamesResponse.getLinks());
+
+                return gameInfo;
+            });
+        GameInfo game = gameInfoMono.block();
+        if (game != null) {
+            game = gameRepository.save(game);
+        }
+        System.out.println("finished zipping");
+        return game;
     }
 
 
     public GameResponse getGameFromApi() {
+        System.out.println(LocalDateTime.now() + " getGameFromApi");
+
         String GET_GAME_FIXED_PROMPT = "Give me a random unique video game idea. Use the following form for the answer, where player type is what the player is playing as:\n" +
                 "Title: \n" +
                 "Description: \n" +
                 "Player type: \n" +
                 "Genre:";
 
-        OpenApiResponse response = getOpenAiApiResponse(GET_GAME_FIXED_PROMPT);
+        OpenApiResponse response = getOpenAiApiResponse(GET_GAME_FIXED_PROMPT).block();;
 
         String game = response.choices.get(0).message.getContent();
 
@@ -103,50 +120,50 @@ public class GameService {
         return new GameResponse(title, description, genre, playerType);
     }
 
-    public SimilarGamesResponse getSimilarGamesFromApi(GameResponse gameResponse) {
+    public Mono<SimilarGamesResponse> getSimilarGamesFromApi(GameResponse gameResponse) {
+        System.out.println(LocalDateTime.now() + " getSimilarGamesFromApi");
 
         String GET_SIMILAR_GAMES_FIXED_PROMPT = "Give me five similar games from steam from this information:\n" +
-                "Title: " + gameResponse.getTitle() + " \n" +
-                "Description: " + gameResponse.getDescription() + " \n" +
-                "Player type: " + gameResponse.getPlayer() + " \n" +
-                "Genre: " + gameResponse.getGenre() + " \n" +
-                "Use the following form for the answers, make sure you give the links and images to the games on steam and replace #1 with the game number and where player type is what the player is playing as:\n" +
-                "#1 Title: \n" +
-                "#1 Description: \n" +
-                "#1 Player type: \n" +
-                "#1 Genre: \n" +
-                "#1 Image: <Give the OPENAI_URL from steam image> \n" +
-                "#1 Link: <Give the OPENAI_URL from steam>";
+            "Title: " + gameResponse.getTitle() + " \n" +
+            "Description: " + gameResponse.getDescription() + " \n" +
+            "Player type: " + gameResponse.getPlayer() + " \n" +
+            "Genre: " + gameResponse.getGenre() + " \n" +
+            "Use the following form for the answers, make sure you give the links and images to the games on steam and replace #1 with the game number and where player type is what the player is playing as:\n" +
+            "#1 Title: \n" +
+            "#1 Description: \n" +
+            "#1 Player type: \n" +
+            "#1 Genre: \n" +
+            "#1 Image: <Give the OPENAI_URL from steam image> \n" +
+            "#1 Link: <Give the OPENAI_URL from steam>";
 
-        OpenApiResponse response = getOpenAiApiResponse(GET_SIMILAR_GAMES_FIXED_PROMPT);
+        return getOpenAiApiResponse(GET_SIMILAR_GAMES_FIXED_PROMPT)
+            .map(response -> {
+                String similarGames = response.choices.get(0).message.getContent();
 
-        String similarGames = response.choices.get(0).message.getContent();
+                List<String> titles = new ArrayList<>();
+                List<String> descriptions = new ArrayList<>();
+                List<String> playerTypes = new ArrayList<>();
+                List<String> genres = new ArrayList<>();
+                List<String> images = new ArrayList<>();
+                List<String> links = new ArrayList<>();
 
-        System.out.println(similarGames);
+                String[] games = similarGames.split("\n\n");
 
-        List<String> titles = new ArrayList<>();
-        List<String> descriptions = new ArrayList<>();
-        List<String> playerTypes = new ArrayList<>();
-        List<String> genres = new ArrayList<>();
-        List<String> images = new ArrayList<>();
-        List<String> links = new ArrayList<>();
-
-        String[] games = similarGames.split("\n\n");
-
-        for (String game : games) {
-            String[] info = game.split("\n");
-            titles.add(info[0].replaceAll("(?m)\\s*#\\d+\\s*Title:\\s*(.*)", "$1"));
-            descriptions.add(info[1].replaceAll("(?m)\\s*#\\d+\\s*Description:\\s*(.*)", "$1"));
-            playerTypes.add(info[2].replaceAll("(?m)\\s*#\\d+\\s*Player type:\\s*(.*)", "$1"));
-            genres.add(info[3].replaceAll("(?m)\\s*#\\d+\\s*Genre:\\s*(.*)", "$1"));
-            images.add(info[4].replaceAll("(?m)\\s*#\\d+\\s*Image:\\s*(.*)", "$1"));
-            links.add(info[5].replaceAll("(?m)\\s*#\\d+\\s*Link:\\s*(.*)", "$1"));
-        }
-        return new SimilarGamesResponse(titles, descriptions, genres, playerTypes, images, links);
+                for (String game : games) {
+                    String[] info = game.split("\n");
+                    titles.add(info[0].replaceAll("(?m)\\s*#\\d+\\s*Title:\\s*(.*)", "$1"));
+                    descriptions.add(info[1].replaceAll("(?m)\\s*#\\d+\\s*Description:\\s*(.*)", "$1"));
+                    playerTypes.add(info[2].replaceAll("(?m)\\s*#\\d+\\s*Player type:\\s*(.*)", "$1"));
+                    genres.add(info[3].replaceAll("(?m)\\s*#\\d+\\s*Genre:\\s*(.*)", "$1"));
+                    images.add(info[4].replaceAll("(?m)\\s*#\\d+\\s*Image:\\s*(.*)", "$1"));
+                    links.add(info[5].replaceAll("(?m)\\s*#\\d+\\s*Link:\\s*(.*)", "$1"));
+                }
+                return new SimilarGamesResponse(titles, descriptions, genres, playerTypes, images, links);
+            });
     }
 
 
-    private OpenApiResponse getOpenAiApiResponse(String prompt) {
+    private Mono<OpenApiResponse> getOpenAiApiResponse(String prompt) {
 
         Map<String, Object> body = new HashMap<>();
 
@@ -174,15 +191,20 @@ public class GameService {
                 .accept(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromValue(json))
                 .retrieve()
-                .bodyToMono(OpenApiResponse.class)
-                .block();
+                .bodyToMono(OpenApiResponse.class);
     }
 
-    public byte[] getImage(String genre, String playerType){
+    public Mono<byte[]> createImage(GameResponse gameResponse){
+        System.out.println(LocalDateTime.now() + " createImage");
 
-        String FIXED_IMAGE_PROMPT = "Give me a picture of a cover for a PC-game that has " + genre + " as genre and " + playerType + " as playertype";
+        String FIXED_IMAGE_PROMPT = "Give me a picture of a cover for a video game that has this information:\n" +
+            "Title: " + gameResponse.getTitle() + " \n" +
+            "Description: " + gameResponse.getDescription() + " \n" +
+            "Player type: " + gameResponse.getPlayer() + " \n" +
+            "Genre: " + gameResponse.getGenre();
 
-        byte[] image = imageService.generateImage(FIXED_IMAGE_PROMPT);
+
+        Mono<byte[]> image = imageService.generateImage(FIXED_IMAGE_PROMPT);
 
         return image;
     }
