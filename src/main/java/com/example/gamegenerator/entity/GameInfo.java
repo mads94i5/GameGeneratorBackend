@@ -1,7 +1,6 @@
 package com.example.gamegenerator.entity;
 
-import com.example.gamegenerator.util.DataCompressionUtils;
-import com.example.gamegenerator.util.ImageStream;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
