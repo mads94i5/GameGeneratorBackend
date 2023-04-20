@@ -80,11 +80,12 @@ public class GameService {
                 return gameInfo;
             });
         GameInfo game = gameInfoMono.block();
-        if (game != null) {
-            game = gameRepository.save(game);
-            gameInfoResponse.convert(game);
+        if (game == null) {
+            return null;
         }
-        System.out.println("finished zipping");
+        game = gameRepository.save(game);
+        gameInfoResponse.convert(game);
+        System.out.println("Finished creating game.");
         return gameInfoResponse;
     }
 
