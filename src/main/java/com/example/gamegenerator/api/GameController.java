@@ -1,5 +1,6 @@
 package com.example.gamegenerator.api;
 
+import com.example.gamegenerator.dto.GameInfoResponse;
 import com.example.gamegenerator.entity.GameInfo;
 import com.example.gamegenerator.service.GameService;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,10 +20,9 @@ public class GameController {
     }
 
     @GetMapping("/create")
-    public GameInfo createGame() {
-        GameInfo gameInfo = gameService.createGameInfo();
-        System.out.println(gameInfo.getTitle());
-        return gameInfo;
+    public GameInfoResponse createGame() {
+
+        return gameService.createGameInfo();
     }
 
     @GetMapping("/get/{id}")

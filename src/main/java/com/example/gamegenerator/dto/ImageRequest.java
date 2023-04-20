@@ -14,8 +14,4 @@ public class ImageRequest {
   private int numImages = 1;
   private int size = 125;
 
-
-  public ImageRequest(String prompt) {
-    this.inputs = prompt;
-  }
 }

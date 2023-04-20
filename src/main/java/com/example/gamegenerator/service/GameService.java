@@ -1,9 +1,6 @@
 package com.example.gamegenerator.service;
 
-import com.example.gamegenerator.dto.GameResponse;
-import com.example.gamegenerator.dto.ImageRequest;
-import com.example.gamegenerator.dto.OpenApiResponse;
-import com.example.gamegenerator.dto.SimilarGamesResponse;
+import com.example.gamegenerator.dto.*;
 import com.example.gamegenerator.entity.GameInfo;
 import com.example.gamegenerator.repository.GameRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,7 +39,9 @@ public class GameService {
         return gameRepository.findAll();
     }
 
-    public GameInfo createGameInfo() {
+    public GameInfoResponse createGameInfo() {
+        GameInfoResponse gameInfoResponse = new GameInfoResponse();
+
         GameResponse gameResponse = getGameFromApi();
         GameInfo gameInfo = new GameInfo();
         gameInfo.setTitle(gameResponse.getTitle());
@@ -70,10 +69,11 @@ public class GameService {
             });
         GameInfo game = gameInfoMono.block();
         if (game != null) {
+            gameInfoResponse.convert(game);
             game = gameRepository.save(game);
         }
         System.out.println("finished zipping");
-        return game;
+        return gameInfoResponse;
     }
 
 
