@@ -12,7 +12,7 @@ import lombok.Setter;
 public class ImageRequest {
   private String inputs;
   private int numImages = 1;
-  private int size = 512;
+  private int size = 125;
 
 
   public ImageRequest(String prompt) {
