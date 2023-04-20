@@ -21,17 +21,16 @@ public class GameController {
 
     @GetMapping("/create")
     public GameInfoResponse createGame() {
-
         return gameService.createGameInfo();
     }
 
     @GetMapping("/get/{id}")
-    public GameInfo getGame(@PathVariable Long id) {
+    public GameInfoResponse getGame(@PathVariable Long id) {
         return gameService.getGameInfo(id);
     }
 
     @GetMapping("/get-all")
-    public List<GameInfo> getAllGames() {
+    public List<GameInfoResponse> getAllGames() {
         return gameService.getAllGameInfo();
     }
 }

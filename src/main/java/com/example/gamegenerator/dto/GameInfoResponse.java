@@ -12,34 +12,23 @@ import java.util.List;
 @Getter
 @Setter
 public class GameInfoResponse {
-
-
+  private Long id;
   private String title;
-
   private String description;
   private String genre;
   private String player;
-
   private byte[] image;
-
   private List<String> titles;
-
-
   private List<String> descriptions;
-
   private List<String> genres;
-
   private List<String> players;
-
   private List<String> images;
-
   private List<String> links;
 
-
-
   public GameInfoResponse convert(GameInfo gameInfo){
+    this.id = gameInfo.getId();
     this.title = gameInfo.getTitle();
-    this.description = gameInfo.getTitle();
+    this.description = gameInfo.getDescription();
     this.genre = gameInfo.getGenre();
     this.player = gameInfo.getPlayer();
     this.image = gameInfo.getImage();

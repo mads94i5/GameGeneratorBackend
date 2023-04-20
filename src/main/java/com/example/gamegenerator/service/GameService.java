@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class GameService {
@@ -25,6 +26,7 @@ public class GameService {
     @Value("${app.api-key}")
     private String OPENAI_API_KEY;
     private final String IMAGE_API_URL = "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5";
+    // private final String IMAGE_API_URL = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-v2-1";
     @Value("${app.api-key-image}")
     private String IMAGE_API_KEY;
 
@@ -32,11 +34,21 @@ public class GameService {
         this.gameRepository = gameRepository;
     }
 
-    public GameInfo getGameInfo(Long id) {
-        return gameRepository.findById(id).orElse(null);
+    public GameInfoResponse getGameInfo(Long id) {
+        GameInfoResponse gameInfoResponse = new GameInfoResponse();
+        GameInfo gameInfo = gameRepository.findById(id).orElse(null);
+        if (gameInfo == null) {
+            return null;
+        }
+        gameInfoResponse.convert(gameInfo);
+        return gameInfoResponse;
     }
-    public List<GameInfo> getAllGameInfo() {
-        return gameRepository.findAll();
+    public List<GameInfoResponse> getAllGameInfo() {
+        List<GameInfo> gameInfoList = gameRepository.findAll();
+        List<GameInfoResponse> gameInfoResponses = gameInfoList.stream()
+                .map(gameInfo -> new GameInfoResponse().convert(gameInfo))
+                .collect(Collectors.toList());
+        return gameInfoResponses;
     }
 
     public GameInfoResponse createGameInfo() {
@@ -69,8 +81,8 @@ public class GameService {
             });
         GameInfo game = gameInfoMono.block();
         if (game != null) {
-            gameInfoResponse.convert(game);
             game = gameRepository.save(game);
+            gameInfoResponse.convert(game);
         }
         System.out.println("finished zipping");
         return gameInfoResponse;
