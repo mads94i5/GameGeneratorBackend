@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 public class GameService {
     private final GameRepository gameRepository;
     private final WebClient client = WebClient.create();
-    String OPENAI_URL = "https://api.openai.com/v1/chat/completions";
+    private final String OPENAI_URL = "https://api.openai.com/v1/chat/completions";
     @Value("${app.api-key}")
     private String OPENAI_API_KEY;
     private final String IMAGE_API_URL = "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5";
@@ -96,7 +96,7 @@ public class GameService {
                 "Player type: \n" +
                 "Genre:";
 
-        OpenApiResponse response = getOpenAiApiResponse(GET_GAME_FIXED_PROMPT).block();;
+        OpenApiResponse response = getOpenAiApiResponse(GET_GAME_FIXED_PROMPT, 1.3).block();;
 
         String game = response.choices.get(0).message.getContent();
 
@@ -142,7 +142,7 @@ public class GameService {
             "#1 Image: <Give the URL from steam image> \n" +
             "#1 Link: <Give the URL from steam>";
 
-        return getOpenAiApiResponse(GET_SIMILAR_GAMES_FIXED_PROMPT)
+        return getOpenAiApiResponse(GET_SIMILAR_GAMES_FIXED_PROMPT, 0)
             .map(response -> {
                 String similarGames = response.choices.get(0).message.getContent();
 
@@ -167,7 +167,7 @@ public class GameService {
                 return new SimilarGamesResponse(titles, descriptions, genres, playerTypes, images, links);
             });
     }
-    private Mono<OpenApiResponse> getOpenAiApiResponse(String prompt) {
+    private Mono<OpenApiResponse> getOpenAiApiResponse(String prompt, double temperature) {
 
         Map<String, Object> body = new HashMap<>();
 
@@ -178,7 +178,7 @@ public class GameService {
         message.put("content", prompt);
         messages.add(message);
         body.put("messages", messages);
-        body.put("temperature", 1);
+        body.put("temperature", temperature);
 
         ObjectMapper mapper = new ObjectMapper();
         String json = "";
