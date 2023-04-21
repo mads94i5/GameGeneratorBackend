@@ -50,7 +50,6 @@ public class GameService {
                 .collect(Collectors.toList());
         return gameInfoResponses;
     }
-
     public GameInfoResponse createGameInfo() {
         GameInfoResponse gameInfoResponse = new GameInfoResponse();
 
@@ -88,8 +87,6 @@ public class GameService {
         System.out.println("Finished creating game.");
         return gameInfoResponse;
     }
-
-
     public GameResponse getGameFromApi() {
         System.out.println(LocalDateTime.now() + " getGameFromApi() called");
 
@@ -129,11 +126,10 @@ public class GameService {
 
         return new GameResponse(title, description, genre, playerType);
     }
-
     public Mono<SimilarGamesResponse> getSimilarGamesFromApi(GameResponse gameResponse) {
         System.out.println(LocalDateTime.now() + " getSimilarGamesFromApi() called");
 
-        String GET_SIMILAR_GAMES_FIXED_PROMPT = "Give me five similar games from steam from this information:\n" +
+        String GET_SIMILAR_GAMES_FIXED_PROMPT = "Give me five similar games from thee video game platform Steam from the following information:\n" +
             "Title: " + gameResponse.getTitle() + " \n" +
             "Description: " + gameResponse.getDescription() + " \n" +
             "Player type: " + gameResponse.getPlayer() + " \n" +
@@ -143,8 +139,8 @@ public class GameService {
             "#1 Description: \n" +
             "#1 Player type: \n" +
             "#1 Genre: \n" +
-            "#1 Image: <Give the OPENAI_URL from steam image> \n" +
-            "#1 Link: <Give the OPENAI_URL from steam>";
+            "#1 Image: <Give the URL from steam image> \n" +
+            "#1 Link: <Give the URL from steam>";
 
         return getOpenAiApiResponse(GET_SIMILAR_GAMES_FIXED_PROMPT)
             .map(response -> {
@@ -171,7 +167,6 @@ public class GameService {
                 return new SimilarGamesResponse(titles, descriptions, genres, playerTypes, images, links);
             });
     }
-
     private Mono<OpenApiResponse> getOpenAiApiResponse(String prompt) {
 
         Map<String, Object> body = new HashMap<>();
@@ -202,7 +197,6 @@ public class GameService {
                 .retrieve()
                 .bodyToMono(OpenApiResponse.class);
     }
-
     public Mono<byte[]> createImage(GameResponse gameResponse){
         System.out.println(LocalDateTime.now() + " createImage() called");
 
@@ -214,7 +208,6 @@ public class GameService {
 
         return generateImage(FIXED_IMAGE_PROMPT);
     }
-
     public Mono<byte[]> generateImage(String prompt) {
         // Set up request data
         ImageRequest request = new ImageRequest();
