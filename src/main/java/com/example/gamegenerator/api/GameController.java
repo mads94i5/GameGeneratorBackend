@@ -64,22 +64,26 @@ public class GameController {
         return gameService.createGameInfo(gameIdeaCreateRequest);
     }
 
+    @PreAuthorize("permitAll()")
     @GetMapping("/get/{id}")
     public GameIdeaResponse getGame(@PathVariable Long id) {
         return gameService.getGameInfo(id);
     }
 
+    @PreAuthorize("permitAll()")
     @GetMapping("/get-all")
     public List<GameIdeaResponse> getAllGames(Pageable pageable) {
         return gameService.getAllGameInfo(pageable);
     }
 
+    @PreAuthorize("permitAll()")
     @GetMapping("/genre/{genre}")
     public List<GameIdeaResponse> getGamesByGenre(@PathVariable String genre, Pageable pageable) {
 
         return gameService.getAllGameInfoByGenre(genre, pageable);
     }
 
+    @PreAuthorize("permitAll()")
     @GetMapping("/count")
     public long getTotalNumber() {
         return gameService.getCount();
