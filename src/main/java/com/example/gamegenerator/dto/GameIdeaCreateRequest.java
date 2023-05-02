@@ -18,4 +18,5 @@ public class GameIdeaCreateRequest {
     private String genre;
     private String player;
     private List<GameMechanic> gameMechanics;
+    String userId;
 }

@@ -10,4 +10,5 @@ import lombok.Setter;
 @Setter
 public class GameIdeaGenerateRequest {
     int numberOfMechanics;
+    String userId;
 }

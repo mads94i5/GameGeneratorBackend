@@ -5,6 +5,7 @@ import com.example.gamegenerator.entity.GameIdea;
 import com.example.gamegenerator.entity.GameMechanic;
 import com.example.gamegenerator.entity.SimilarGame;
 import com.example.gamegenerator.repository.GameRepository;
+import com.example.gamegenerator.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 @Service
 public class GameService {
     private final GameRepository gameRepository;
+    private final UserRepository userRepository;
     private final WebClient client = WebClient.create();
     private final String OPENAI_URL = "https://api.openai.com/v1/chat/completions";
     @Value("${app.api-key}")
@@ -31,8 +33,9 @@ public class GameService {
     @Value("${app.api-key-image}")
     private String IMAGE_API_KEY;
 
-    public GameService(GameRepository gameRepository) {
+    public GameService(GameRepository gameRepository, UserRepository userRepository) {
         this.gameRepository = gameRepository;
+        this.userRepository = userRepository;
     }
 
     public GameIdeaResponse getGameInfo(Long id) {
@@ -48,24 +51,18 @@ public class GameService {
         Page<GameIdea> gameIdeaPage = gameRepository.findAll(pageable);
         List<GameIdea> gameIdeaList = gameIdeaPage.getContent();
 
-        List<GameIdeaResponse> gameIdeaResponses = gameIdeaList.stream()
+        return gameIdeaList.stream()
             .map(gameIdea -> new GameIdeaResponse().convert(gameIdea))
             .collect(Collectors.toList());
-
-
-        return gameIdeaResponses;
     }
 
     public List<GameIdeaResponse> getAllGameInfoByGenre(String genre, Pageable pageable) {
         Page<GameIdea> gameIdeaPage = gameRepository.findGameInfosByGenreContaining(genre, pageable);
         List<GameIdea> gameIdeaList = gameIdeaPage.getContent();
 
-        List<GameIdeaResponse> gameIdeaResponses = gameIdeaList.stream()
+        return gameIdeaList.stream()
             .map(gameIdea -> new GameIdeaResponse().convert(gameIdea))
             .collect(Collectors.toList());
-
-
-        return gameIdeaResponses;
     }
     public GameIdeaResponse createGameInfo(GameIdeaCreateRequest gameIdeaCreateRequest) {
         GameIdeaResponse gameIdeaResponse = new GameIdeaResponse();
@@ -77,6 +74,7 @@ public class GameService {
         gameIdea.setPlayer(gameIdeaCreateRequest.getPlayer());
         gameIdea.setGameMechanics(gameIdeaCreateRequest.getGameMechanics());
         gameIdea.setGenerated(false);
+        gameIdea.setUser(userRepository.findById(gameIdeaCreateRequest.getUserId()).orElse(null));
 
         GameIdea game = getImageAndSimilarGames(gameIdeaCreateRequest, gameIdea).block();
         if (game == null) { return null; }
@@ -95,6 +93,7 @@ public class GameService {
         gameIdea.setPlayer(gameResponse.getPlayer());
         gameIdea.setGameMechanics(gameResponse.getGameMechanics());
         gameIdea.setGenerated(true);
+        gameIdea.setUser(userRepository.findById(gameIdeaGenerateRequest.getUserId()).orElse(null));
 
         GameIdeaCreateRequest gameIdeaCreateRequest = new GameIdeaCreateRequest();
         gameIdeaCreateRequest.setTitle(gameResponse.getTitle());

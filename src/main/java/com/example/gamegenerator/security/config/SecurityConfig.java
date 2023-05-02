@@ -31,7 +31,7 @@ import com.nimbusds.jose.jwk.source.ImmutableSecret;
 @Configuration
 public class SecurityConfig {
     
-    @Value("${app.secret-key}")
+    @Value("${app.token-secret}")
     private String tokenSecret;
 
     @Bean
