@@ -21,7 +21,7 @@ import com.example.gamegenerator.security.enums.Role;
  */
 @Configuration
 @Profile("dev")
-public class DevConfig implements ApplicationRunner {
+public class DevUserConfig implements ApplicationRunner {
 
     private static String devUsername = "user";
     private static String devPassword = "pass";
@@ -31,7 +31,7 @@ public class DevConfig implements ApplicationRunner {
     private PasswordEncoder passwordEncoder;
     private UserRepository userRepository;
 
-    public DevConfig(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public DevUserConfig(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
