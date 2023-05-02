@@ -35,9 +35,10 @@ public class UserWithRoles implements UserDetails {
 
     private List<Role> roles;
 
-    public UserWithRoles(String username, String password) {
+    public UserWithRoles(String username, String password, List<Role> roles) {
         this.username = username;
         this.password = password;
+        this.roles = roles;
     }
 
     @Override
