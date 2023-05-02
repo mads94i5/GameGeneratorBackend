@@ -1,5 +1,6 @@
 package com.example.gamegenerator.dto;
 
+import com.example.gamegenerator.entity.SimilarGame;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,10 +13,5 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SimilarGamesResponse {
-    private List<String> titles;
-    private List<String> descriptions;
-    private List<String> genres;
-    private List<String> players;
-    private List<String> images;
-    private List<String> links;
+    private List<SimilarGame> similarGames;
 }
