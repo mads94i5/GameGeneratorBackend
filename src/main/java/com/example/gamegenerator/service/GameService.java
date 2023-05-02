@@ -2,7 +2,6 @@ package com.example.gamegenerator.service;
 
 import com.example.gamegenerator.dto.*;
 import com.example.gamegenerator.entity.GameIdea;
-import com.example.gamegenerator.entity.GameInfo;
 import com.example.gamegenerator.entity.GameMechanic;
 import com.example.gamegenerator.entity.SimilarGame;
 import com.example.gamegenerator.repository.GameRepository;
@@ -45,8 +44,20 @@ public class GameService {
         gameIdeaResponse.convert(gameIdea);
         return gameIdeaResponse;
     }
-    public List<GameIdeaResponse> getAllGameInfo() {
+    public List<GameIdeaResponse> getAllGameInfo(Pageable pageable) {
         Page<GameIdea> gameIdeaPage = gameRepository.findAll(pageable);
+        List<GameIdea> gameIdeaList = gameIdeaPage.getContent();
+
+        List<GameIdeaResponse> gameIdeaResponses = gameIdeaList.stream()
+            .map(gameIdea -> new GameIdeaResponse().convert(gameIdea))
+            .collect(Collectors.toList());
+
+
+        return gameIdeaResponses;
+    }
+
+    public List<GameIdeaResponse> getAllGameInfoByGenre(String genre, Pageable pageable) {
+        Page<GameIdea> gameIdeaPage = gameRepository.findGameInfosByGenreContaining(genre, pageable);
         List<GameIdea> gameIdeaList = gameIdeaPage.getContent();
 
         List<GameIdeaResponse> gameIdeaResponses = gameIdeaList.stream()
