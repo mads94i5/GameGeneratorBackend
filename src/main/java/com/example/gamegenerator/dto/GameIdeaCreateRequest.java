@@ -12,7 +12,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class GameResponse {
+public class GameIdeaCreateRequest {
     private String title;
     private String description;
     private String genre;

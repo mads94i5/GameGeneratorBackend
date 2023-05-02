@@ -1,8 +1,8 @@
 package com.example.gamegenerator.api;
 
 import com.example.gamegenerator.dto.GameInfoResponse;
+import com.example.gamegenerator.entity.GameInfo;
 import com.example.gamegenerator.service.GameService;
-import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,13 +19,18 @@ public class GameController {
         this.gameService = gameService;
     }
 
-    @GetMapping("/create")
-    public GameInfoResponse createGame() {
-        return gameService.createGameInfo();
+    @GetMapping("/create/generated")
+    public GameIdeaResponse createGeneratedGame(@RequestBody GameIdeaGenerateRequest gameIdeaGenerateRequest) {
+        return gameService.createGeneratedGameInfo(gameIdeaGenerateRequest);
+    }
+
+    @GetMapping("/create/user")
+    public GameIdeaResponse createGame(@RequestBody GameIdeaCreateRequest gameIdeaCreateRequest) {
+        return gameService.createGameInfo(gameIdeaCreateRequest);
     }
 
     @GetMapping("/get/{id}")
-    public GameInfoResponse getGame(@PathVariable Long id) {
+    public GameIdeaResponse getGame(@PathVariable Long id) {
         return gameService.getGameInfo(id);
     }
 

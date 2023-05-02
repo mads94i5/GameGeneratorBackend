@@ -1,6 +1,5 @@
 package com.example.gamegenerator.entity;
 
-
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -12,7 +11,7 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class GameInfo {
+public class GameIdea {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
@@ -22,21 +21,11 @@ public class GameInfo {
     private String description;
     private String genre;
     private String player;
+    @OneToMany
+    private List<GameMechanic> gameMechanics;
     @Column(columnDefinition = "LONGBLOB")
     private byte[] image;
-    @ElementCollection
-    private List<String> titles;
-    @Column(columnDefinition = "TEXT(10000)")
-    @ElementCollection
-    private List<String> descriptions;
-    @ElementCollection
-    private List<String> genres;
-    @ElementCollection
-    private List<String> players;
-    @ElementCollection
-    private List<String> images;
-    @ElementCollection
-    private List<String> links;
-
-
+    @OneToMany
+    private List<SimilarGame> similarGames;
+    private boolean isGenerated;
 }
