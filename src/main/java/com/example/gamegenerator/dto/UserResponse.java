@@ -1,4 +1,4 @@
-package com.example.gamegenerator.dto.user;
+package com.example.gamegenerator.dto;
 
 import java.util.List;
 

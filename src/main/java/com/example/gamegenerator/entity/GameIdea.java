@@ -28,4 +28,6 @@ public class GameIdea {
     @OneToMany
     private List<SimilarGame> similarGames;
     private boolean isGenerated;
+    @ManyToOne
+    private User user;
 }

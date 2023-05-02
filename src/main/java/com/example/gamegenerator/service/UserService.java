@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.example.gamegenerator.dto.user.UserResponse;
+import com.example.gamegenerator.dto.UserResponse;
 import com.example.gamegenerator.entity.User;
 import com.example.gamegenerator.repository.UserRepository;
 
