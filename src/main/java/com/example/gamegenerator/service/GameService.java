@@ -5,6 +5,8 @@ import com.example.gamegenerator.entity.GameInfo;
 import com.example.gamegenerator.repository.GameRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
@@ -43,13 +45,39 @@ public class GameService {
         gameInfoResponse.convert(gameInfo);
         return gameInfoResponse;
     }
-    public List<GameInfoResponse> getAllGameInfo() {
-        List<GameInfo> gameInfoList = gameRepository.findAll();
+    public List<GameInfoResponse> getAllGameInfo(Pageable pageable) {
+ /*       Page<Car> carPage = carRepository.findAll(pageable);
+        List<Car> carList = carPage.getContent();
+        List<CarResponse> carResponses = carList.stream().map(c -> new CarResponse(c)).toList();*/
+
+        Page<GameInfo> gameInfoPage = gameRepository.findAll(pageable);
+        System.out.println(gameInfoPage);
+        List<GameInfo> gameInfoList = gameInfoPage.getContent();
+
+        List<GameInfoResponse> gameInfoResponses = gameInfoList.stream()
+            .map(gameInfo -> new GameInfoResponse().convert(gameInfo))
+            .collect(Collectors.toList());
+
+      /*  List<GameInfo> gameInfoList = gameRepository.findAll();
         List<GameInfoResponse> gameInfoResponses = gameInfoList.stream()
                 .map(gameInfo -> new GameInfoResponse().convert(gameInfo))
-                .collect(Collectors.toList());
+                .collect(Collectors.toList());*/
         return gameInfoResponses;
     }
+
+    public List<GameInfoResponse> getAllGamesByGenre(String genre, Pageable pageable) {
+
+        Page<GameInfo> gameInfoPage = gameRepository.findGameInfosByGenreContaining(genre, pageable);
+        System.out.println(gameInfoPage);
+        List<GameInfo> gameInfoList = gameInfoPage.getContent();
+
+        List<GameInfoResponse> gameInfoResponses = gameInfoList.stream()
+            .map(gameInfo -> new GameInfoResponse().convert(gameInfo))
+            .collect(Collectors.toList());
+
+        return gameInfoResponses;
+    }
+
     public GameInfoResponse createGameInfo() {
         GameInfoResponse gameInfoResponse = new GameInfoResponse();
 
@@ -221,5 +249,9 @@ public class GameService {
                 .body(Mono.just(request), ImageRequest.class)
                 .retrieve()
                 .bodyToMono(byte[].class);
+    }
+
+    public Long getCount(){
+        return gameRepository.count();
     }
 }
