@@ -57,6 +57,8 @@ public class SecurityConfig {
             .requestMatchers("/api/gameidea/get**").permitAll()
             .requestMatchers("/api/gameidea/genre/**").permitAll()
             .requestMatchers("/api/gameidea/count**").permitAll()
+            .requestMatchers(HttpMethod.GET,"/api/game-ratings/**").permitAll()
+            .requestMatchers(HttpMethod.POST, "/api/game-ratings").permitAll()
             .requestMatchers(HttpMethod.POST, "/api/auth").permitAll()
             .anyRequest().authenticated());
 
