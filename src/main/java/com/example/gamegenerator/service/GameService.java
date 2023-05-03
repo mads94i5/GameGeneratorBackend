@@ -3,6 +3,7 @@ package com.example.gamegenerator.service;
 import com.example.gamegenerator.dto.*;
 import com.example.gamegenerator.entity.GameIdea;
 import com.example.gamegenerator.entity.GameMechanic;
+import com.example.gamegenerator.entity.GameRating;
 import com.example.gamegenerator.entity.SimilarGame;
 import com.example.gamegenerator.repository.GameRepository;
 import com.example.gamegenerator.repository.UserRepository;
@@ -44,15 +45,15 @@ public class GameService {
         if (gameIdea == null) {
             return null;
         }
-        gameIdeaResponse.convert(gameIdea);
+        double rating = gameRepository.getPercentageOfTotalScoreForGameIdea(id, GameRating.MAX_SCORE).orElse(0.0);
+        gameIdeaResponse.convert(gameIdea, rating);
         return gameIdeaResponse;
     }
     public List<GameIdeaResponse> getAllGameInfo(Pageable pageable) {
         Page<GameIdea> gameIdeaPage = gameRepository.findAll(pageable);
         List<GameIdea> gameIdeaList = gameIdeaPage.getContent();
-
         return gameIdeaList.stream()
-            .map(gameIdea -> new GameIdeaResponse().convert(gameIdea))
+            .map(g -> new GameIdeaResponse().convert(g, gameRepository.getPercentageOfTotalScoreForGameIdea(g.getId(), GameRating.MAX_SCORE).orElse(0.0)))
             .collect(Collectors.toList());
     }
 
@@ -61,7 +62,7 @@ public class GameService {
         List<GameIdea> gameIdeaList = gameIdeaPage.getContent();
 
         return gameIdeaList.stream()
-            .map(gameIdea -> new GameIdeaResponse().convert(gameIdea))
+            .map(g -> new GameIdeaResponse().convert(g, gameRepository.getPercentageOfTotalScoreForGameIdea(g.getId(), GameRating.MAX_SCORE).orElse(0.0)))
             .collect(Collectors.toList());
     }
     public GameIdeaResponse createGameInfo(GameIdeaCreateRequest gameIdeaCreateRequest) {
@@ -79,7 +80,7 @@ public class GameService {
         GameIdea game = getImageAndSimilarGames(gameIdeaCreateRequest, gameIdea).block();
         if (game == null) { return null; }
         game = gameRepository.save(game);
-        gameIdeaResponse.convert(game);
+        gameIdeaResponse.convert(game, 0.0);
         return gameIdeaResponse;
     }
     public GameIdeaResponse createGeneratedGameInfo(GameIdeaGenerateRequest gameIdeaGenerateRequest) {
@@ -105,7 +106,7 @@ public class GameService {
         GameIdea game = getImageAndSimilarGames(gameIdeaCreateRequest, gameIdea).block();
         if (game == null) { return null; }
         game = gameRepository.save(game);
-        gameIdeaResponse.convert(game);
+        gameIdeaResponse.convert(game, 0.0);
         return gameIdeaResponse;
     }
 

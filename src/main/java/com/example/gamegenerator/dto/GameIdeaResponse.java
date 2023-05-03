@@ -23,7 +23,8 @@ public class GameIdeaResponse {
   private List<GameMechanic> gameMechanics;
   private byte[] image;
   private List<SimilarGame> similarGames;
-  public GameIdeaResponse convert(GameIdea gameIdea){
+  private double totalRatingInPercent;
+  public GameIdeaResponse convert(GameIdea gameIdea, double totalRatingInPercent){
     this.id = gameIdea.getId();
     this.title = gameIdea.getTitle();
     this.description = gameIdea.getDescription();
@@ -32,6 +33,7 @@ public class GameIdeaResponse {
     this.gameMechanics = gameIdea.getGameMechanics();
     this.image = gameIdea.getImage();
     this.similarGames = gameIdea.getSimilarGames();
+    this.totalRatingInPercent = totalRatingInPercent;
     return this;
   }
 }

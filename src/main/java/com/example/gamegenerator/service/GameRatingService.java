@@ -28,21 +28,6 @@ public class GameRatingService {
     }
 
     /**
-     * Find the score for a given game idea in percentage
-     * 
-     * 1. Find the sum of all scores for a given game idea.
-     * 2. Find the number of ratings for a given game idea.
-     * 3. Divide the sum by the number of ratings and multiply by 100.
-     */
-    public GameRatingResponse getTotalScoreInPercentage(Long gameIdeaId) {
-        double sum = gameRatingRepository.sumScoreByGameIdeaId(gameIdeaId);
-        double max = gameRatingRepository.countByGameIdeaId(gameIdeaId) * GameRating.MAX_SCORE;
-        double total = (sum / max) * 100.0;
-
-        return new GameRatingResponse(gameIdeaId, total);
-    }
-
-    /**
      * Create a new game rating
      */
     public GameRatingResponse rateGame(GameRatingRequest gameRatingRequest) {
@@ -58,6 +43,7 @@ public class GameRatingService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
         
-        return getTotalScoreInPercentage(gameIdea.get().getId());
+        double rating = gameRepository.getPercentageOfTotalScoreForGameIdea(gameIdea.get().getId(), GameRating.MAX_SCORE).orElse(0.0);
+        return new GameRatingResponse(gameIdea.get().getId(), rating);
     }
 }

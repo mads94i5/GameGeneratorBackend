@@ -21,11 +21,6 @@ public class GameRatingController {
         this.gameRatingService = gameRatingService;
     }
 
-    @GetMapping("/{gameIdeaId}")
-    public GameRatingResponse getTotalScoreInPercentage(@RequestParam Long gameIdeaId) {
-        return gameRatingService.getTotalScoreInPercentage(gameIdeaId);
-    }
-
     @PostMapping
     public GameRatingResponse rateGame(@RequestBody GameRatingRequest gameRatingRequest) {
         return gameRatingService.rateGame(gameRatingRequest);
