@@ -10,13 +10,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 
 @Configuration
+@Profile("dev")
 public class DevConfig implements ApplicationRunner {
-
-  @Value("${app.env}")
-  private String environment;
 
   private GameRepository gameRepository;
   private GameRatingRepository gameRatingRepository;
@@ -26,16 +25,14 @@ public class DevConfig implements ApplicationRunner {
     this.gameRatingRepository = gameRatingRepository;
   }
 
-  // runner method here
   public void testData() {
+    // Only add test data the first time the application is run
+    // locally by a developer
+    if (gameRepository.count() > 0) {
+      return;
+    }
 
-
-    if (environment.equals("development")) {
-      // Do something only in dev environment
-
-      /**/
-
-      GameIdea game1 = GameIdea.builder()
+    GameIdea game1 = GameIdea.builder()
           .title("Super Mario Bros.")
           .genre("Platformer")
           .description("Classic platformer game featuring Mario and Luigi")
@@ -60,7 +57,6 @@ public class DevConfig implements ApplicationRunner {
 
       gameRatingRepository.save(new GameRating(3, game1));
       gameRatingRepository.save(new GameRating(4, game1));
-    }
   }
 
   @Override
