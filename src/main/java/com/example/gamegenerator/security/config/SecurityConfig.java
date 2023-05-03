@@ -56,6 +56,7 @@ public class SecurityConfig {
         http.authorizeHttpRequests((authorize) -> authorize
             .requestMatchers("/h2*/**").permitAll()
             .requestMatchers("/error").permitAll()
+            .requestMatchers(HttpMethod.POST, "/api/game-ratings").permitAll()
             .requestMatchers("/api/gameidea/public/**").permitAll()
             .requestMatchers(HttpMethod.POST, "/api/auth").permitAll()
             .anyRequest().authenticated());

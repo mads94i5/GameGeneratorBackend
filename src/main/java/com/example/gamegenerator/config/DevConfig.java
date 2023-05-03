@@ -2,6 +2,8 @@ package com.example.gamegenerator.config;
 
 import com.example.gamegenerator.dto.GameIdeaCreateRequest;
 import com.example.gamegenerator.entity.GameIdea;
+import com.example.gamegenerator.entity.GameRating;
+import com.example.gamegenerator.repository.GameRatingRepository;
 import com.example.gamegenerator.repository.GameRepository;
 import com.example.gamegenerator.service.GameService;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,9 +19,11 @@ public class DevConfig implements ApplicationRunner {
   private String environment;
 
   private GameRepository gameRepository;
+  private GameRatingRepository gameRatingRepository;
 
-  public DevConfig(GameRepository gameRepository) {
+  public DevConfig(GameRepository gameRepository, GameRatingRepository gameRatingRepository) {
     this.gameRepository = gameRepository;
+    this.gameRatingRepository = gameRatingRepository;
   }
 
   // runner method here
@@ -53,6 +57,9 @@ public class DevConfig implements ApplicationRunner {
       gameRepository.save(game1);
       gameRepository.save(game2);
       gameRepository.save(game3);
+
+      gameRatingRepository.save(new GameRating(3, game1));
+      gameRatingRepository.save(new GameRating(4, game1));
     }
   }
 

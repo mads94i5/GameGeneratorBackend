@@ -22,9 +22,11 @@ public class GameIdeaResponse {
   private String player;
   private byte[] image;
   private List<SimilarGame> similarGames;
+
   private boolean isGenerated;
   private User user;
-  public GameIdeaResponse convert(GameIdea gameIdea){
+  private double totalRatingInPercent;
+  public GameIdeaResponse convert(GameIdea gameIdea, double totalRatingInPercent){
     this.id = gameIdea.getId();
     this.title = gameIdea.getTitle();
     this.description = gameIdea.getDescription();
@@ -32,6 +34,7 @@ public class GameIdeaResponse {
     this.player = gameIdea.getPlayer();
     this.image = gameIdea.getImage();
     this.similarGames = gameIdea.getSimilarGames();
+    this.totalRatingInPercent = totalRatingInPercent;
     this.isGenerated = gameIdea.isGenerated();
     this.user = gameIdea.getUser();
     return this;
