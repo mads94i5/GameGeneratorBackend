@@ -20,9 +20,8 @@ public class GameIdea {
     @Column(columnDefinition = "TEXT(10000)")
     private String description;
     private String genre;
+    @Column(columnDefinition = "TEXT(10000)")
     private String player;
-    @OneToMany
-    private List<GameMechanic> gameMechanics;
     @Column(columnDefinition = "LONGBLOB")
     private byte[] image;
     @OneToMany
