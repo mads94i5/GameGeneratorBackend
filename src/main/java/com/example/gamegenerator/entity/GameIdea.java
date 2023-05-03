@@ -30,4 +30,8 @@ public class GameIdea {
     private boolean isGenerated;
     @ManyToOne
     private User user;
+
+    // Lazy fetch is used to avoid fetching the ratings when fetching the game idea
+    @OneToMany(mappedBy = "gameIdea", fetch = FetchType.LAZY)
+    private List<GameRating> gameRatings;
 }
