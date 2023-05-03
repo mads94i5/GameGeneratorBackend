@@ -2,18 +2,22 @@ package com.example.gamegenerator.service;
 
 import com.example.gamegenerator.dto.*;
 import com.example.gamegenerator.entity.GameIdea;
-import com.example.gamegenerator.entity.GameMechanic;
 import com.example.gamegenerator.entity.SimilarGame;
+import com.example.gamegenerator.entity.User;
 import com.example.gamegenerator.repository.GameRepository;
+import com.example.gamegenerator.repository.SimilarGameRepository;
 import com.example.gamegenerator.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
@@ -24,6 +28,7 @@ import java.util.stream.Collectors;
 public class GameService {
     private final GameRepository gameRepository;
     private final UserRepository userRepository;
+    private final SimilarGameRepository similarGameRepository;
     private final WebClient client = WebClient.create();
     private final String OPENAI_URL = "https://api.openai.com/v1/chat/completions";
     @Value("${app.api-key}")
@@ -33,9 +38,12 @@ public class GameService {
     @Value("${app.api-key-image}")
     private String IMAGE_API_KEY;
 
-    public GameService(GameRepository gameRepository, UserRepository userRepository) {
+    public GameService(GameRepository gameRepository,
+                       UserRepository userRepository,
+                       SimilarGameRepository similarGameRepository) {
         this.gameRepository = gameRepository;
         this.userRepository = userRepository;
+        this.similarGameRepository = similarGameRepository;
     }
 
     public GameIdeaResponse getGameInfo(Long id) {
@@ -64,7 +72,10 @@ public class GameService {
             .map(gameIdea -> new GameIdeaResponse().convert(gameIdea))
             .collect(Collectors.toList());
     }
-    public GameIdeaResponse createGameInfo(GameIdeaCreateRequest gameIdeaCreateRequest) {
+    public GameIdeaResponse createGameInfo(Jwt jwt, GameIdeaCreateRequest gameIdeaCreateRequest) {
+        User user = checkUserCredits(jwt);
+        gameIdeaCreateRequest.setUserId(user.getUsername());
+
         GameIdeaResponse gameIdeaResponse = new GameIdeaResponse();
 
         GameIdea gameIdea = new GameIdea();
@@ -72,26 +83,29 @@ public class GameService {
         gameIdea.setDescription(gameIdeaCreateRequest.getDescription());
         gameIdea.setGenre(gameIdeaCreateRequest.getGenre());
         gameIdea.setPlayer(gameIdeaCreateRequest.getPlayer());
-        gameIdea.setGameMechanics(gameIdeaCreateRequest.getGameMechanics());
         gameIdea.setGenerated(false);
         gameIdea.setUser(userRepository.findById(gameIdeaCreateRequest.getUserId()).orElse(null));
 
         GameIdea game = getImageAndSimilarGames(gameIdeaCreateRequest, gameIdea).block();
         if (game == null) { return null; }
+        similarGameRepository.saveAll(game.getSimilarGames());
         game = gameRepository.save(game);
         gameIdeaResponse.convert(game);
         return gameIdeaResponse;
     }
-    public GameIdeaResponse createGeneratedGameInfo(GameIdeaGenerateRequest gameIdeaGenerateRequest) {
+
+    public GameIdeaResponse createGeneratedGameInfo(Jwt jwt, GameIdeaGenerateRequest gameIdeaGenerateRequest) {
+        User user = checkUserCredits(jwt);
+        gameIdeaGenerateRequest.setUserId(user.getUsername());
+
         GameIdeaResponse gameIdeaResponse = new GameIdeaResponse();
 
-        GameResponse gameResponse = getGameFromApi(gameIdeaGenerateRequest.getNumberOfMechanics());
+        GameResponse gameResponse = getGameFromApi();
         GameIdea gameIdea = new GameIdea();
         gameIdea.setTitle(gameResponse.getTitle());
         gameIdea.setDescription(gameResponse.getDescription());
         gameIdea.setGenre(gameResponse.getGenre());
         gameIdea.setPlayer(gameResponse.getPlayer());
-        gameIdea.setGameMechanics(gameResponse.getGameMechanics());
         gameIdea.setGenerated(true);
         gameIdea.setUser(userRepository.findById(gameIdeaGenerateRequest.getUserId()).orElse(null));
 
@@ -100,10 +114,10 @@ public class GameService {
         gameIdeaCreateRequest.setDescription(gameResponse.getDescription());
         gameIdeaCreateRequest.setGenre(gameResponse.getGenre());
         gameIdeaCreateRequest.setPlayer(gameResponse.getPlayer());
-        gameIdeaCreateRequest.setGameMechanics(gameResponse.getGameMechanics());
 
         GameIdea game = getImageAndSimilarGames(gameIdeaCreateRequest, gameIdea).block();
         if (game == null) { return null; }
+        similarGameRepository.saveAll(game.getSimilarGames());
         game = gameRepository.save(game);
         gameIdeaResponse.convert(game);
         return gameIdeaResponse;
@@ -124,17 +138,16 @@ public class GameService {
                     return gameIdea;
                 });
     }
-    public GameResponse getGameFromApi(int numberOfMechanics) {
+    public GameResponse getGameFromApi() {
         System.out.println(LocalDateTime.now() + " getGameFromApi() called");
 
-        String GET_GAME_FIXED_PROMPT = "Give me a random unique video game idea. Use the following form for the answer, where player type is what the player is playing as and game mechanics are " + numberOfMechanics + " game mechanics, seperated by semicolons:\n" +
+        String GET_GAME_FIXED_PROMPT = "Give me a random unique video game idea. Use the following form for the answer, where player type is what the player is playing as:\n" +
                 "Title: \n" +
                 "Description: \n" +
                 "Player type: \n" +
-                "Genre: \n" +
-                "Game mechanics:";
+                "Genre:";
 
-        OpenApiResponse response = getOpenAiApiResponse(GET_GAME_FIXED_PROMPT, 1.3).block();;
+        OpenApiResponse response = getOpenAiApiResponse(GET_GAME_FIXED_PROMPT, 1.3).block();
 
         String game = response.choices.get(0).message.getContent();
 
@@ -144,7 +157,6 @@ public class GameService {
         String description = "";
         String playerType = "";
         String genre = "";
-        List<GameMechanic> gameMechanics = new ArrayList<>();
 
         for (String line : gameResponseLines) {
             if (line.startsWith("Title:")) {
@@ -155,10 +167,6 @@ public class GameService {
                 playerType = line.substring(13);
             } else if (line.startsWith("Genre:")) {
                 genre = line.substring(7);
-            } else if (line.startsWith("Game mechanics:")) {
-                gameMechanics = Arrays.stream(line.substring(16).split(";"))
-                        .map(GameMechanic::new)
-                        .collect(Collectors.toList());
             }
         }
 
@@ -166,11 +174,8 @@ public class GameService {
         System.out.println(description);
         System.out.println(playerType);
         System.out.println(genre);
-        for (GameMechanic gameMechanic : gameMechanics) {
-            System.out.println(gameMechanic);
-        }
 
-        return new GameResponse(title, description, genre, playerType, gameMechanics);
+        return new GameResponse(title, description, genre, playerType);
     }
     public Mono<SimilarGamesResponse> getSimilarGamesFromApi(GameIdeaCreateRequest gameRequest) {
         System.out.println(LocalDateTime.now() + " getSimilarGamesFromApi() called");
@@ -240,9 +245,10 @@ public class GameService {
                 .accept(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromValue(json))
                 .retrieve()
-                .bodyToMono(OpenApiResponse.class);
+                .bodyToMono(OpenApiResponse.class)
+                .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND, "No response from OpenAI API")));
     }
-    public Mono<byte[]> createImage(GameIdeaCreateRequest gameRequest){
+    public Mono<byte[]> createImage(GameIdeaCreateRequest gameRequest) {
         System.out.println(LocalDateTime.now() + " createImage() called");
 
         String FIXED_IMAGE_PROMPT = "Give me a picture of a cover for a video game that has the following information, where player type is what the player is playing as:\n" +
@@ -265,10 +271,25 @@ public class GameService {
                 .header("Authorization", "Bearer " + IMAGE_API_KEY)
                 .body(Mono.just(request), ImageRequest.class)
                 .retrieve()
-                .bodyToMono(byte[].class);
+                .bodyToMono(byte[].class)
+                .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND, "No AI generated image received from API")));
     }
 
     public Long getCount(){
         return gameRepository.count();
+    }
+
+    private User checkUserCredits(Jwt jwt) {
+        Optional<User> optionalUser = userRepository.findById(jwt.getSubject());
+        if (optionalUser.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+        }
+        User user = optionalUser.get();
+        if (user.getCredits() < 1) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not enough credits");
+        }
+        user.setCredits(user.getCredits() - 1);
+        userRepository.save(user);
+        return user;
     }
 }

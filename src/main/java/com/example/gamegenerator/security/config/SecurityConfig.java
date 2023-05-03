@@ -11,6 +11,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.authentication.configuration.EnableGlobalAuthentication;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -54,9 +56,7 @@ public class SecurityConfig {
         http.authorizeHttpRequests((authorize) -> authorize
             .requestMatchers("/h2*/**").permitAll()
             .requestMatchers("/error").permitAll()
-            .requestMatchers("/api/gameidea/get**").permitAll()
-            .requestMatchers("/api/gameidea/genre/**").permitAll()
-            .requestMatchers("/api/gameidea/count**").permitAll()
+            .requestMatchers("/api/gameidea/public/**").permitAll()
             .requestMatchers(HttpMethod.POST, "/api/auth").permitAll()
             .anyRequest().authenticated());
 

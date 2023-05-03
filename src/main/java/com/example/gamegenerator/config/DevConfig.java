@@ -35,19 +35,19 @@ public class DevConfig implements ApplicationRunner {
           .title("Super Mario Bros.")
           .genre("Platformer")
           .description("Classic platformer game featuring Mario and Luigi")
-          .player("Single player")
+          .player("Mario")
           .build();
       GameIdea game2 = GameIdea.builder()
           .title("The Legend of Zelda: Breath of the Wild")
           .genre("Action-adventure")
           .description("Open-world adventure game with puzzles and combat")
-          .player("Single player")
+          .player("Link")
           .build();
       GameIdea game3 = GameIdea.builder()
           .title("Overwatch")
           .genre("First-person shooter")
           .description("Multiplayer team-based shooter with unique heroes")
-          .player("Multiplayer")
+          .player("Fantasy characters")
           .build();
 
       gameRepository.save(game1);

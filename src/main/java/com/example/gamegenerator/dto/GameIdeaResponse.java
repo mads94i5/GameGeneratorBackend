@@ -1,8 +1,8 @@
 package com.example.gamegenerator.dto;
 
 import com.example.gamegenerator.entity.GameIdea;
-import com.example.gamegenerator.entity.GameMechanic;
 import com.example.gamegenerator.entity.SimilarGame;
+import com.example.gamegenerator.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,18 +20,20 @@ public class GameIdeaResponse {
   private String description;
   private String genre;
   private String player;
-  private List<GameMechanic> gameMechanics;
   private byte[] image;
   private List<SimilarGame> similarGames;
+  private boolean isGenerated;
+  private User user;
   public GameIdeaResponse convert(GameIdea gameIdea){
     this.id = gameIdea.getId();
     this.title = gameIdea.getTitle();
     this.description = gameIdea.getDescription();
     this.genre = gameIdea.getGenre();
     this.player = gameIdea.getPlayer();
-    this.gameMechanics = gameIdea.getGameMechanics();
     this.image = gameIdea.getImage();
     this.similarGames = gameIdea.getSimilarGames();
+    this.isGenerated = gameIdea.isGenerated();
+    this.user = gameIdea.getUser();
     return this;
   }
 }

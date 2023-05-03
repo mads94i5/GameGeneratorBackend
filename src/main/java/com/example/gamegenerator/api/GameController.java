@@ -3,11 +3,9 @@ package com.example.gamegenerator.api;
 import com.example.gamegenerator.dto.GameIdeaCreateRequest;
 import com.example.gamegenerator.dto.GameIdeaGenerateRequest;
 import com.example.gamegenerator.dto.GameIdeaResponse;
-import com.example.gamegenerator.dto.UserResponse;
 import com.example.gamegenerator.entity.User;
 import com.example.gamegenerator.repository.UserRepository;
 import com.example.gamegenerator.service.GameService;
-import com.example.gamegenerator.service.UserService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -33,58 +31,32 @@ public class GameController {
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @PostMapping("/create/generated")
     public GameIdeaResponse createGeneratedGame(@AuthenticationPrincipal Jwt jwt, @RequestBody GameIdeaGenerateRequest gameIdeaGenerateRequest) {
-        Optional<User> optionalUser = userRepository.findById(jwt.getSubject());
-        if (optionalUser.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
-        }
-        User user = optionalUser.get();
-        if (user.getCredits() < 1) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not enough credits");
-        }
-        user.setCredits(user.getCredits() - 1);
-        userRepository.save(user);
-        gameIdeaGenerateRequest.setUserId(user.getUsername());
-        return gameService.createGeneratedGameInfo(gameIdeaGenerateRequest);
+        return gameService.createGeneratedGameInfo(jwt, gameIdeaGenerateRequest);
     }
 
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @PostMapping("/create/user")
     public GameIdeaResponse createGame(@AuthenticationPrincipal Jwt jwt, @RequestBody GameIdeaCreateRequest gameIdeaCreateRequest) {
-        Optional<User> optionalUser = userRepository.findById(jwt.getSubject());
-        if (optionalUser.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
-        }
-        User user = optionalUser.get();
-        if (user.getCredits() < 1) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not enough credits");
-        }
-        user.setCredits(user.getCredits() - 1);
-        userRepository.save(user);
-        gameIdeaCreateRequest.setUserId(user.getUsername());
-        return gameService.createGameInfo(gameIdeaCreateRequest);
+        return gameService.createGameInfo(jwt, gameIdeaCreateRequest);
     }
 
-    @PreAuthorize("permitAll()")
-    @GetMapping("/get/{id}")
+    @GetMapping("/public/get/{id}")
     public GameIdeaResponse getGame(@PathVariable Long id) {
         return gameService.getGameInfo(id);
     }
 
-    @PreAuthorize("permitAll()")
-    @GetMapping("/get-all")
+    @GetMapping("/public/get-all")
     public List<GameIdeaResponse> getAllGames(Pageable pageable) {
         return gameService.getAllGameInfo(pageable);
     }
 
-    @PreAuthorize("permitAll()")
-    @GetMapping("/genre/{genre}")
+    @GetMapping("/public/genre/{genre}")
     public List<GameIdeaResponse> getGamesByGenre(@PathVariable String genre, Pageable pageable) {
 
         return gameService.getAllGameInfoByGenre(genre, pageable);
     }
 
-    @PreAuthorize("permitAll()")
-    @GetMapping("/count")
+    @GetMapping("/public/count")
     public long getTotalNumber() {
         return gameService.getCount();
     }
