@@ -20,9 +20,8 @@ public class GameIdea {
     @Column(columnDefinition = "TEXT(10000)")
     private String description;
     private String genre;
+    @Column(columnDefinition = "TEXT(10000)")
     private String player;
-    @OneToMany
-    private List<GameMechanic> gameMechanics;
     @Column(columnDefinition = "LONGBLOB")
     private byte[] image;
     @OneToMany
@@ -30,4 +29,8 @@ public class GameIdea {
     private boolean isGenerated;
     @ManyToOne
     private User user;
+
+    // Lazy fetch is used to avoid fetching the ratings when fetching the game idea
+    @OneToMany(mappedBy = "gameIdea", fetch = FetchType.LAZY)
+    private List<GameRating> gameRatings;
 }
