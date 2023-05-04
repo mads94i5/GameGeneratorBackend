@@ -10,7 +10,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface GameRepository extends JpaRepository<GameIdea, Long> {
+public interface GameIdeaRepository extends JpaRepository<GameIdea, Long> {
   Page<GameIdea> findGameInfosByGenreContaining(String genre, Pageable pageable);
 
   /**

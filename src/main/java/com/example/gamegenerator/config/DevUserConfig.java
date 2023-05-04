@@ -26,7 +26,7 @@ public class DevUserConfig implements ApplicationRunner {
     @Value("${app.default-user}")
     private String devUsername;
 
-    @Value("${app.default-user}")
+    @Value("${app.default-password}")
     private String devPassword;
 
     @Value("${app.default-credits}")

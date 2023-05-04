@@ -1,13 +1,14 @@
 package com.example.gamegenerator.config;
 
-import com.example.gamegenerator.dto.GameIdeaCreateRequest;
 import com.example.gamegenerator.entity.GameIdea;
-import com.example.gamegenerator.repository.GameRepository;
-import com.example.gamegenerator.service.GameService;
+import com.example.gamegenerator.entity.GameRating;
+import com.example.gamegenerator.repository.GameRatingRepository;
+import com.example.gamegenerator.repository.GameIdeaRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 
 @Configuration
@@ -17,11 +18,11 @@ public class DevConfig implements ApplicationRunner {
   @Value("${app.env}")
   private String environment;
 
-  private GameRepository gameRepository;
+  private GameIdeaRepository gameIdeaRepository;
   private GameRatingRepository gameRatingRepository;
 
-  public DevConfig(GameRepository gameRepository) {
-    this.gameRepository = gameRepository;
+  public DevConfig(GameIdeaRepository gameIdeaRepository) {
+    this.gameIdeaRepository = gameIdeaRepository;
     this.gameRatingRepository = gameRatingRepository;
   }
 
@@ -29,7 +30,7 @@ public class DevConfig implements ApplicationRunner {
   public void testData() {
     // Only add test data the first time the application is run
     // locally by a developer
-    if (gameRepository.count() > 0) {
+    if (gameIdeaRepository.count() > 0) {
       return;
     }
 
@@ -129,20 +130,20 @@ public class DevConfig implements ApplicationRunner {
         .player("Single player")
         .build();
 
-    gameRepository.save(game1);
-    gameRepository.save(game2);
-    gameRepository.save(game3);
-    gameRepository.save(game4);
-    gameRepository.save(game5);
-    gameRepository.save(game6);
-    gameRepository.save(game7);
-    gameRepository.save(game8);
-    gameRepository.save(game9);
-    gameRepository.save(game10);
-    gameRepository.save(game11);
-    gameRepository.save(game12);
-    gameRepository.save(game13);
-    gameRepository.save(game14);
+    gameIdeaRepository.save(game1);
+    gameIdeaRepository.save(game2);
+    gameIdeaRepository.save(game3);
+    gameIdeaRepository.save(game4);
+    gameIdeaRepository.save(game5);
+    gameIdeaRepository.save(game6);
+    gameIdeaRepository.save(game7);
+    gameIdeaRepository.save(game8);
+    gameIdeaRepository.save(game9);
+    gameIdeaRepository.save(game10);
+    gameIdeaRepository.save(game11);
+    gameIdeaRepository.save(game12);
+    gameIdeaRepository.save(game13);
+    gameIdeaRepository.save(game14);
 
 
 
