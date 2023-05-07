@@ -21,18 +21,19 @@ import com.example.gamegenerator.security.enums.Role;
  * which should only be the case when running the application locally.
  */
 @Configuration
+@Profile("dev")
 public class DevUserConfig implements ApplicationRunner {
 
     @Value("${app.default-user}")
     private String devUsername;
 
-    @Value("${app.default-user}")
+    @Value("${app.default-password}")
     private String devPassword;
 
     @Value("${app.default-credits}")
     private int devCredits;
 
-    private static List<Role> devRoles = List.of(Role.USER, Role.ADMIN);
+    private static List<Role> devRoles = List.of(Role.USER);
 
     private PasswordEncoder passwordEncoder;
     private UserRepository userRepository;

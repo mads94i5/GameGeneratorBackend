@@ -198,6 +198,8 @@ public class GameService {
                 .map(response -> {
                     String similarGames = response.choices.get(0).message.getContent();
 
+                    System.out.println(similarGames);
+
                     List<SimilarGame> similarGamesList = new ArrayList<>();
 
                     String[] games = similarGames.split("\n\n");

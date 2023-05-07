@@ -31,7 +31,6 @@ public class DevConfig implements ApplicationRunner {
     if (gameRepository.count() > 0) {
       return;
     }
-
     GameIdea game1 = GameIdea.builder()
           .title("Super Mario Bros.")
           .genre("Platformer")

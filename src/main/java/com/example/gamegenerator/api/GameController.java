@@ -34,7 +34,7 @@ public class GameController {
         return gameService.createGeneratedGameInfo(jwt, gameIdeaGenerateRequest);
     }
 
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN')")
     @PostMapping("/create/user")
     public GameIdeaResponse createGame(@AuthenticationPrincipal Jwt jwt, @RequestBody GameIdeaCreateRequest gameIdeaCreateRequest) {
         return gameService.createGameInfo(jwt, gameIdeaCreateRequest);
