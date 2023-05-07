@@ -13,17 +13,17 @@ import com.example.gamegenerator.dto.GameRatingResponse;
 import com.example.gamegenerator.entity.GameIdea;
 import com.example.gamegenerator.entity.GameRating;
 import com.example.gamegenerator.repository.GameRatingRepository;
-import com.example.gamegenerator.repository.GameRepository;
+import com.example.gamegenerator.repository.GameIdeaRepository;
 
 @Service
 public class GameRatingService {
     
-    private final GameRepository gameRepository;
+    private final GameIdeaRepository gameIdeaRepository;
 
     private final GameRatingRepository gameRatingRepository;
 
-    public GameRatingService(GameRepository gameRepository, GameRatingRepository gameRatingRepository) {
-        this.gameRepository = gameRepository;
+    public GameRatingService(GameIdeaRepository gameIdeaRepository, GameRatingRepository gameRatingRepository) {
+        this.gameIdeaRepository = gameIdeaRepository;
         this.gameRatingRepository = gameRatingRepository;
     }
 
@@ -31,7 +31,7 @@ public class GameRatingService {
      * Create a new game rating
      */
     public GameRatingResponse rateGame(GameRatingRequest gameRatingRequest) {
-        Optional<GameIdea> gameIdea = gameRepository.findById(gameRatingRequest.getGameIdeaId());
+        Optional<GameIdea> gameIdea = gameIdeaRepository.findById(gameRatingRequest.getGameIdeaId());
         if (gameIdea.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Game idea not found");
         }
@@ -43,7 +43,7 @@ public class GameRatingService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
         
-        double rating = gameRepository.getPercentageOfTotalScoreForGameIdea(gameIdea.get().getId(), GameRating.MAX_SCORE).orElse(0.0);
+        double rating = gameIdeaRepository.getPercentageOfTotalScoreForGameIdea(gameIdea.get().getId(), GameRating.MAX_SCORE).orElse(0.0);
         return new GameRatingResponse(gameIdea.get().getId(), rating);
     }
 }
