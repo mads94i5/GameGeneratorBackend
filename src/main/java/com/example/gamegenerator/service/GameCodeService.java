@@ -11,14 +11,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
+import reactor.util.retry.Retry;
 
 import java.io.*;
-import java.nio.file.Files;
+import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -55,11 +56,11 @@ public class GameCodeService {
             "You play as a: " + gameIdea.getPlayer();
   }
 
-  private static String getCodeFixedPrompt(CodeLanguage codeLanguage, GameIdea gameIdea, String[] gameCodeClasses, String className, CodeClass codeClass) {
+  private static String getCodeFixedPrompt(CodeLanguage codeLanguage, GameIdea gameIdea, List<String> gameCodeClasses, String className, CodeClass codeClass) {
     String GET_CODE_FIXED_PROMPT = "I want to code a video game in " + codeLanguage.getLanguage() + "\n" +
-            "Please give me the complete code of the class: " + codeClass.getName() + " from the following information.\n" +
-            "You can make assumptions from the following information and you must come up with complete features that would be needed to make a functional game.\n" +
-            "Please do not include explanations or preliminary text presenting the code class. And just do your best to respond with something complete with the information provided." +
+            "Please give me functional code of the class: " + codeClass.getName() + " from the following information.\n" +
+            "You can make assumptions from the following information and you must come up with features that would be needed to make a functional game.\n" +
+            "Please do not include explanations or preliminary text presenting the code class. \n" +
             "Title: " + gameIdea.getTitle() + "\n" +
             "Description: " + gameIdea.getDescription() + "\n" +
             "Genre: " + gameIdea.getGenre() + "\n" +
@@ -108,42 +109,35 @@ public class GameCodeService {
 
     System.out.println(classList);
 
-    List<Mono<OpenApiResponse>> monos = new ArrayList<>();
+    List<String> gameCodeClassNames = Arrays.stream(classList.substring(classList.indexOf("\n\n") + 1).split("\\r?\\n")).toList();
 
-    String[] gameCodeClassNames = classList.substring(classList.indexOf("\n\n") + 1).split("\\r?\\n");
+    CodeLanguage finalCodeLanguage = codeLanguage;
+    Flux.fromIterable(gameCodeClassNames)
+            .flatMap(className -> {
+              if (className.contains(" ")) {
+                className = className.substring(0, className.indexOf(" "));
+              }
+              CodeClass codeClass = new CodeClass();
+              codeClass.setName(className);
+              codeClasses.add(codeClass);
+              String GET_CODE_FIXED_PROMPT = getCodeFixedPrompt(finalCodeLanguage, gameIdea, gameCodeClassNames, className, codeClass);
 
-    for (String className : gameCodeClassNames) {
-      if (className.contains(" ")) {
-        className = className.substring(0, className.indexOf(" "));
-      }
-      CodeClass codeClass = new CodeClass();
-      codeClass.setName(className);
-      codeClasses.add(codeClass);
-      String GET_CODE_FIXED_PROMPT = getCodeFixedPrompt(codeLanguage, gameIdea, gameCodeClassNames, className, codeClass);
-
-      try {
-        Thread.sleep(20000); // Introduce a delay between API requests
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-      }
-      System.out.println("## Requesting code for class: " + className);
-      monos.add(apiService.getOpenAiApiResponse(GET_CODE_FIXED_PROMPT, 0).subscribeOn(Schedulers.boundedElastic()));
-    }
-
-    Mono.zip(monos, responses -> IntStream.range(0, responses.length)
-            .mapToObj(i -> {
-              OpenApiResponse openApiResponse = (OpenApiResponse) responses[i];
-              String code = openApiResponse.choices.get(0).message.getContent();
-              codeClasses.get(i).setCode(code);
-              System.out.println(code);
-              return codeClasses.get(i);
+              return apiService.getOpenAiApiResponse(GET_CODE_FIXED_PROMPT, 0)
+                      .flux()
+                      .delayElements(Duration.ofSeconds(15))
+                      .retryWhen(Retry.backoff(3, Duration.ofSeconds(10)))
+                      .subscribeOn(Schedulers.boundedElastic())
+                      .map(openApiResponse -> {
+                        String code = openApiResponse.choices.get(0).message.getContent();
+                        codeClass.setCode(code);
+                        System.out.println(code);
+                        return codeClass;
+                      });
             })
-            .collect(Collectors.toList())).block();
+            .collectList()
+            .block();
 
-    List<CodeClass> savedCodeClasses = new ArrayList<>();
-    for (CodeClass codeClass : codeClasses) {
-        savedCodeClasses.add(codeClassRepository.save(codeClass));
-    }
+    List<CodeClass> savedCodeClasses = codeClassRepository.saveAll(codeClasses);
 
     gameCode.setZipFile(zipGameCode(savedCodeClasses.stream().map(CodeClass::getName).collect(Collectors.toList()), codeLanguage.getFileExtension(), savedCodeClasses.stream().map(CodeClass::getCode).collect(Collectors.toList())));
     gameCode.setGameIdea(gameIdea);
