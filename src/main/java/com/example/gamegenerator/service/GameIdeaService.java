@@ -10,11 +10,9 @@ import com.example.gamegenerator.repository.SimilarGameRepository;
 import com.example.gamegenerator.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;

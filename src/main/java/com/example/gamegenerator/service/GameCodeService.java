@@ -12,7 +12,6 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.util.retry.Retry;
 
@@ -180,5 +179,12 @@ public class GameCodeService {
       e.printStackTrace();
     }
     return null;
+  }
+
+  public List<GameCode> getGameCodesForGameIdea(Long gameIdeaId) {
+    GameIdea gameIdea = gameIdeaRepository.findById(gameIdeaId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "No such game"));
+    Optional<List<GameCode>> optionalGameCodes = gameCodeRepository.findGameCodesByGameIdea(gameIdea);
+    return optionalGameCodes.orElseGet(ArrayList::new);
   }
 }

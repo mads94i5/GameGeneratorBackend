@@ -6,10 +6,9 @@ import com.example.gamegenerator.service.GameCodeService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/gamecode")
@@ -22,7 +21,12 @@ public class GameCodeController {
 
   @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
   @GetMapping("/generate")
-  public GameCode generateCode(@AuthenticationPrincipal Jwt jwt, @RequestBody GameCodeRequest gameCodeRequest){
+  public GameCode getOrGenerateCode(@AuthenticationPrincipal Jwt jwt, @RequestBody GameCodeRequest gameCodeRequest){
     return gameCodeService.getOrGenerateGameCode(jwt, gameCodeRequest);
+  }
+
+  @GetMapping("/public/get/{gameIdeaId}")
+  public List<GameCode> getGameCodesForGameIdea(@PathVariable Long gameIdeaId){
+    return gameCodeService.getGameCodesForGameIdea(gameIdeaId);
   }
 }
