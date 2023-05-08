@@ -1,5 +1,6 @@
 package com.example.gamegenerator.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -29,8 +30,9 @@ public class GameIdea {
     private boolean isGenerated;
     @ManyToOne
     private User user;
-    @OneToMany
-    private List<GameCode> gameCodeForLanguages;
+    @JsonManagedReference
+    @OneToMany(mappedBy = "gameIdea", fetch = FetchType.LAZY)
+    private List<GameCode> gameCodes;
 
     // Lazy fetch is used to avoid fetching the ratings when fetching the game idea
     @OneToMany(mappedBy = "gameIdea", fetch = FetchType.LAZY)
@@ -38,6 +40,6 @@ public class GameIdea {
 
 
     public void addGameCode(GameCode gameCode){
-        gameCodeForLanguages.add(gameCode);
+        gameCodes.add(gameCode);
     }
 }

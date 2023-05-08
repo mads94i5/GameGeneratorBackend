@@ -1,5 +1,6 @@
 package com.example.gamegenerator.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -22,6 +23,9 @@ public class GameCode {
   private CodeLanguage codeLanguage;
   @OneToMany
   private List<CodeClass> codeClasses;
+  @JsonBackReference
   @ManyToOne
   private GameIdea gameIdea;
+  @Column(columnDefinition = "LONGBLOB")
+  private byte[] zipFile;
 }
