@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/gamecode")
 public class GameCodeController {
-
   private final GameCodeService gameCodeService;
 
   public GameCodeController(GameCodeService gameCodeService) {
@@ -24,7 +23,6 @@ public class GameCodeController {
   @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
   @GetMapping("/generate")
   public GameCode generateCode(@AuthenticationPrincipal Jwt jwt, @RequestBody GameCodeRequest gameCodeRequest){
-
-    return gameCodeService.codeGenerator(jwt, gameCodeRequest);
+    return gameCodeService.getOrGenerateGameCode(jwt, gameCodeRequest);
   }
 }

@@ -22,21 +22,23 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-public class GameService {
+public class GameIdeaService {
   private final GameIdeaRepository gameIdeaRepository;
   private final UserRepository userRepository;
+  private final UserService userService;
   private final SimilarGameRepository similarGameRepository;
-
   private final ApiService apiService;
   private final WebClient client = WebClient.create();
 
 
-  public GameService(GameIdeaRepository gameIdeaRepository,
-                     UserRepository userRepository,
-                     SimilarGameRepository similarGameRepository,
-                     ApiService apiService) {
+  public GameIdeaService(GameIdeaRepository gameIdeaRepository,
+                         UserRepository userRepository,
+                         UserService userService,
+                         SimilarGameRepository similarGameRepository,
+                         ApiService apiService) {
     this.gameIdeaRepository = gameIdeaRepository;
     this.userRepository = userRepository;
+    this.userService = userService;
     this.similarGameRepository = similarGameRepository;
     this.apiService = apiService;
   }
@@ -70,7 +72,7 @@ public class GameService {
   }
 
   public GameIdeaResponse createGameInfo(Jwt jwt, GameIdeaCreateRequest gameIdeaCreateRequest) {
-    User user = checkUserCredits(jwt);
+    User user = userService.checkIfUserHasXCreditsAndUse(jwt, 1);
     gameIdeaCreateRequest.setUserId(user.getUsername());
 
     GameIdeaResponse gameIdeaResponse = new GameIdeaResponse();
@@ -83,18 +85,11 @@ public class GameService {
     gameIdea.setGenerated(false);
     gameIdea.setUser(userRepository.findById(gameIdeaCreateRequest.getUserId()).orElse(null));
 
-    GameIdea game = getImageAndSimilarGames(gameIdeaCreateRequest, gameIdea).block();
-    if (game == null) {
-      return null;
-    }
-    similarGameRepository.saveAll(game.getSimilarGames());
-    game = gameIdeaRepository.save(game);
-    gameIdeaResponse.convert(game, 0.0);
-    return gameIdeaResponse;
+    return getGameIdeaResponseFromMono(gameIdeaResponse, gameIdea, gameIdeaCreateRequest);
   }
 
   public GameIdeaResponse createGeneratedGameInfo(Jwt jwt, GameIdeaGenerateRequest gameIdeaGenerateRequest) {
-    User user = checkUserCredits(jwt);
+    User user = userService.checkIfUserHasXCreditsAndUse(jwt, 1);
     gameIdeaGenerateRequest.setUserId(user.getUsername());
 
     GameIdeaResponse gameIdeaResponse = new GameIdeaResponse();
@@ -114,6 +109,10 @@ public class GameService {
     gameIdeaCreateRequest.setGenre(gameResponse.getGenre());
     gameIdeaCreateRequest.setPlayer(gameResponse.getPlayer());
 
+    return getGameIdeaResponseFromMono(gameIdeaResponse, gameIdea, gameIdeaCreateRequest);
+  }
+
+  private GameIdeaResponse getGameIdeaResponseFromMono(GameIdeaResponse gameIdeaResponse, GameIdea gameIdea, GameIdeaCreateRequest gameIdeaCreateRequest) {
     GameIdea game = getImageAndSimilarGames(gameIdeaCreateRequest, gameIdea).block();
     if (game == null) {
       return null;
@@ -200,22 +199,21 @@ public class GameService {
         .map(response -> {
           String similarGames = response.choices.get(0).message.getContent();
 
-          List<SimilarGame> similarGamesList = new ArrayList<>();
-
           String[] games = similarGames.split("\n\n");
 
-          for (String game : games) {
-            String[] info = game.split("\n");
-            String title = info[0].replaceAll("(?m)\\s*#\\d+\\s*Title:\\s*(.*)", "$1");
-            String description = info[1].replaceAll("(?m)\\s*#\\d+\\s*Description:\\s*(.*)", "$1");
-            String playerType = info[2].replaceAll("(?m)\\s*#\\d+\\s*Player type:\\s*(.*)", "$1");
-            String genre = info[3].replaceAll("(?m)\\s*#\\d+\\s*Genre:\\s*(.*)", "$1");
-            String image = info[4].replaceAll("(?m)\\s*#\\d+\\s*Image:\\s*(.*)", "$1");
-            String link = info[5].replaceAll("(?m)\\s*#\\d+\\s*Link:\\s*(.*)", "$1");
+          List<SimilarGame> similarGamesList = Arrays.stream(games)
+                  .map(game -> {
+                    String[] info = game.split("\n");
+                    String title = info[0].replaceAll("(?m)\\s*#\\d+\\s*Title:\\s*(.*)", "$1");
+                    String description = info[1].replaceAll("(?m)\\s*#\\d+\\s*Description:\\s*(.*)", "$1");
+                    String playerType = info[2].replaceAll("(?m)\\s*#\\d+\\s*Player type:\\s*(.*)", "$1");
+                    String genre = info[3].replaceAll("(?m)\\s*#\\d+\\s*Genre:\\s*(.*)", "$1");
+                    String image = info[4].replaceAll("(?m)\\s*#\\d+\\s*Image:\\s*(.*)", "$1");
+                    String link = info[5].replaceAll("(?m)\\s*#\\d+\\s*Link:\\s*(.*)", "$1");
 
-            SimilarGame similarGame = new SimilarGame(title, description, playerType, genre, image, link);
-            similarGamesList.add(similarGame);
-          }
+                    return new SimilarGame(title, description, playerType, genre, image, link);
+                  })
+                  .collect(Collectors.toList());
 
           return new SimilarGamesResponse(similarGamesList);
         });
@@ -237,20 +235,4 @@ public class GameService {
   public Long getCount() {
     return gameIdeaRepository.count();
   }
-
-  private User checkUserCredits(Jwt jwt) {
-    Optional<User> optionalUser = userRepository.findById(jwt.getSubject());
-    if (optionalUser.isEmpty()) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
-    }
-    User user = optionalUser.get();
-    if (user.getCredits() < 1) {
-      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not enough credits");
-    }
-    user.setCredits(user.getCredits() - 1);
-    userRepository.save(user);
-    return user;
-  }
-
-
 }

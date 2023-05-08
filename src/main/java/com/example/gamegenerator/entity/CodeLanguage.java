@@ -1,13 +1,12 @@
 package com.example.gamegenerator.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -15,23 +14,21 @@ import lombok.Setter;
 @NoArgsConstructor
 @Entity
 public class CodeLanguage {
-
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
-
+  @Column(unique = true)
   private String language;
-
   private String fileExtension;
-
   public CodeLanguage(String language) {
     this.language = language;
-
     switch (language){
-      case "java": {
-        this.fileExtension = ".java";
-      }
+      case "java" -> this.fileExtension = ".java";
+      case "python" -> this.fileExtension = ".py";
+      case "javascript" -> this.fileExtension = ".js";
+      case "c++" -> this.fileExtension = ".cpp";
+      case "c#" -> this.fileExtension = ".cs";
+      default -> this.fileExtension = ".txt";
     }
-
   }
 }

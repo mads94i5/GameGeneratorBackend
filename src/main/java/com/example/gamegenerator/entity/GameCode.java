@@ -15,14 +15,13 @@ import java.util.List;
 @NoArgsConstructor
 @Entity
 public class GameCode {
-
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
-
-  @OneToOne
+  @ManyToOne
   private CodeLanguage codeLanguage;
-
   @OneToMany
   private List<CodeClass> codeClasses;
+  @ManyToOne
+  private GameIdea gameIdea;
 }

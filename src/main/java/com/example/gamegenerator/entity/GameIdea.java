@@ -30,7 +30,7 @@ public class GameIdea {
     @ManyToOne
     private User user;
     @OneToMany
-    private List<GameCode> gameCodes;
+    private List<GameCode> gameCodeForLanguages;
 
     // Lazy fetch is used to avoid fetching the ratings when fetching the game idea
     @OneToMany(mappedBy = "gameIdea", fetch = FetchType.LAZY)
@@ -38,6 +38,6 @@ public class GameIdea {
 
 
     public void addGameCode(GameCode gameCode){
-        gameCodes.add(gameCode);
+        gameCodeForLanguages.add(gameCode);
     }
 }

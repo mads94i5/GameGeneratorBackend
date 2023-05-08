@@ -21,7 +21,7 @@ public class DevConfig implements ApplicationRunner {
   private GameIdeaRepository gameIdeaRepository;
   private GameRatingRepository gameRatingRepository;
 
-  public DevConfig(GameIdeaRepository gameIdeaRepository) {
+  public DevConfig(GameIdeaRepository gameIdeaRepository, GameRatingRepository gameRatingRepository) {
     this.gameIdeaRepository = gameIdeaRepository;
     this.gameRatingRepository = gameRatingRepository;
   }
@@ -119,14 +119,14 @@ public class DevConfig implements ApplicationRunner {
         .title("Minecraft")
         .genre("Sandbox")
         .description("Game about placing blocks to build anything you can imagine")
-        .player("Single player, Multiplayer")
+        .player("Steve")
         .build();
 
     GameIdea game14 = GameIdea.builder()
         .title("Final Fantasy VII Remake")
         .genre("Role-playing")
         .description("Story-driven game set in a dystopian world with a focus on combat and exploration")
-        .player("Single player")
+        .player("Cloud")
         .build();
 
     gameIdeaRepository.save(game1);
