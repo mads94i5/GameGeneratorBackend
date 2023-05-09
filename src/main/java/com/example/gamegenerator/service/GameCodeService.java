@@ -75,7 +75,9 @@ public class GameCodeService {
   public GameCode getOrGenerateGameCode(Jwt jwt, GameCodeRequest gameCodeRequest){
     GameIdea gameIdea = gameIdeaRepository.findById(gameCodeRequest.getGameIdeaId())
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "No such game"));
-
+    if (gameCodeRequest.getLanguage() == null || gameCodeRequest.getLanguage().isEmpty()) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No language specified");
+    }
     Optional<GameCode> databaseGameCode = gameCodeRepository.findGameCodeByCodeLanguage_LanguageAndGameIdea(gameCodeRequest.getLanguage(), gameIdea);
     if (databaseGameCode.isPresent()) {
       System.out.println("## Found cached game code in database for " + gameIdea.getTitle() + " in " + gameCodeRequest.getLanguage());

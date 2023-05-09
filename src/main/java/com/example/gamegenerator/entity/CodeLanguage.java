@@ -34,6 +34,10 @@ public class CodeLanguage {
 
   public CodeLanguage(String language) {
     this.language = language;
+    if (this.language == null) {
+      this.fileExtension = ".txt";
+      return;
+    }
     for (Pattern pattern : FILE_EXTENSIONS.keySet()) {
       if (pattern.matcher(this.language).find()) {
         this.fileExtension = FILE_EXTENSIONS.get(pattern);

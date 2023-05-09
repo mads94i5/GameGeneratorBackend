@@ -20,7 +20,7 @@ public class GameCodeController {
   }
 
   @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-  @GetMapping("/generate")
+  @PostMapping("/generate")
   public GameCode getOrGenerateCode(@AuthenticationPrincipal Jwt jwt, @RequestBody GameCodeRequest gameCodeRequest){
     return gameCodeService.getOrGenerateGameCode(jwt, gameCodeRequest);
   }
