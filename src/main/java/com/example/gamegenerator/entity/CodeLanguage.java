@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.regex.Pattern;
 
 @Getter
@@ -25,11 +24,11 @@ public class CodeLanguage {
   private static final HashMap<Pattern, String> FILE_EXTENSIONS = new HashMap<>();
 
   static {
-    FILE_EXTENSIONS.put(Pattern.compile("java", Pattern.CASE_INSENSITIVE), ".java");
-    FILE_EXTENSIONS.put(Pattern.compile("python", Pattern.CASE_INSENSITIVE), ".py");
-    FILE_EXTENSIONS.put(Pattern.compile("javascript", Pattern.CASE_INSENSITIVE), ".js");
-    FILE_EXTENSIONS.put(Pattern.compile("c\\+\\+", Pattern.CASE_INSENSITIVE), ".cpp");
-    FILE_EXTENSIONS.put(Pattern.compile("c#", Pattern.CASE_INSENSITIVE), ".cs");
+    FILE_EXTENSIONS.put(Pattern.compile("javascript(?!\\S)", Pattern.CASE_INSENSITIVE), ".js");
+    FILE_EXTENSIONS.put(Pattern.compile("java(?!\\S)", Pattern.CASE_INSENSITIVE), ".java");
+    FILE_EXTENSIONS.put(Pattern.compile("python(?!\\S)", Pattern.CASE_INSENSITIVE), ".py");
+    FILE_EXTENSIONS.put(Pattern.compile("c\\+\\+(?!\\S)", Pattern.CASE_INSENSITIVE), ".cpp");
+    FILE_EXTENSIONS.put(Pattern.compile("c#(?!\\S)", Pattern.CASE_INSENSITIVE), ".cs");
   }
 
   public CodeLanguage(String language) {
