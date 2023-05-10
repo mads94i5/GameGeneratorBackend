@@ -29,6 +29,14 @@ public class CodeLanguage {
     FILE_EXTENSIONS.put(Pattern.compile("python(?!\\S)", Pattern.CASE_INSENSITIVE), ".py");
     FILE_EXTENSIONS.put(Pattern.compile("c\\+\\+(?!\\S)", Pattern.CASE_INSENSITIVE), ".cpp");
     FILE_EXTENSIONS.put(Pattern.compile("c#(?!\\S)", Pattern.CASE_INSENSITIVE), ".cs");
+    FILE_EXTENSIONS.put(Pattern.compile("c(?!\\S)", Pattern.CASE_INSENSITIVE), ".c");
+    FILE_EXTENSIONS.put(Pattern.compile("objective-c(?!\\S)", Pattern.CASE_INSENSITIVE), ".m");
+    FILE_EXTENSIONS.put(Pattern.compile("swift(?!\\S)", Pattern.CASE_INSENSITIVE), ".swift");
+    FILE_EXTENSIONS.put(Pattern.compile("lua(?!\\S)", Pattern.CASE_INSENSITIVE), ".lua");
+    FILE_EXTENSIONS.put(Pattern.compile("typescript(?!\\S)", Pattern.CASE_INSENSITIVE), ".ts");
+    FILE_EXTENSIONS.put(Pattern.compile("rust(?!\\S)", Pattern.CASE_INSENSITIVE), ".rs");
+    FILE_EXTENSIONS.put(Pattern.compile("kotlin(?!\\S)", Pattern.CASE_INSENSITIVE), ".kt");
+    FILE_EXTENSIONS.put(Pattern.compile("assembly(?!\\S)", Pattern.CASE_INSENSITIVE), ".asm");
   }
 
   public CodeLanguage(String language) {
