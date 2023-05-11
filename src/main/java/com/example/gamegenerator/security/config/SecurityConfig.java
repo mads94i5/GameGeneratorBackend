@@ -59,6 +59,7 @@ public class SecurityConfig {
             .requestMatchers(HttpMethod.POST, "/api/game-ratings").permitAll()
             .requestMatchers("/api/gameidea/public/**").permitAll()
             .requestMatchers("/api/gamecode/public/**").permitAll()
+            .requestMatchers("/api/gamecode/public/download/**").permitAll()
             .requestMatchers(HttpMethod.POST, "/api/auth").permitAll()
             .anyRequest().authenticated());
 
