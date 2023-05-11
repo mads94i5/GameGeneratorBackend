@@ -40,17 +40,4 @@ public class GameCodeController {
   public List<GameCodeResponse> getGameCodesForGameIdea(@PathVariable Long gameIdeaId){
     return gameCodeService.getGameCodesForGameIdea(gameIdeaId);
   }
-
-  @GetMapping("/public/download/{gameCodeId}")
-  public ResponseEntity<Resource> downloadCode(@PathVariable Long gameCodeId) throws IOException {
-    File file = gameCodeService.getZipFileForGameCode(gameCodeId);
-    ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(file.toPath()));
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + file.toPath().getFileName().toString())
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .contentLength(resource.contentLength())
-                .body(resource);
- 
-  }
 }
