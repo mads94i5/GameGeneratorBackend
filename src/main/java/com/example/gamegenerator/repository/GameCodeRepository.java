@@ -9,5 +9,5 @@ import java.util.Optional;
 
 public interface GameCodeRepository extends JpaRepository<GameCode, Long> {
     Optional<GameCode> findGameCodeByCodeLanguage_LanguageAndGameIdea(String language, GameIdea gameIdea);
-    Optional<List<GameCode>> findGameCodesByGameIdea(GameIdea gameIdea);
+    List<GameCode> findGameCodesByGameIdea(GameIdea gameIdea);
 }
