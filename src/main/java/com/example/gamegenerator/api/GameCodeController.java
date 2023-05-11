@@ -1,15 +1,24 @@
 package com.example.gamegenerator.api;
 
 import com.example.gamegenerator.dto.GameCodeRequest;
+import com.example.gamegenerator.dto.GameCodeResponse;
 import com.example.gamegenerator.entity.GameCode;
 import com.example.gamegenerator.service.GameCodeService;
 import jakarta.servlet.http.HttpServletResponse;
+
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
 
 @RestController
@@ -23,29 +32,25 @@ public class GameCodeController {
 
   @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
   @PostMapping("/generate")
-  public GameCode getOrGenerateCode(@AuthenticationPrincipal Jwt jwt, @RequestBody GameCodeRequest gameCodeRequest){
+  public GameCodeResponse getOrGenerateCode(@AuthenticationPrincipal Jwt jwt, @RequestBody GameCodeRequest gameCodeRequest){
     return gameCodeService.getOrGenerateGameCode(jwt, gameCodeRequest);
   }
 
   @GetMapping("/public/get/{gameIdeaId}")
-  public List<GameCode> getGameCodesForGameIdea(@PathVariable Long gameIdeaId){
+  public List<GameCodeResponse> getGameCodesForGameIdea(@PathVariable Long gameIdeaId){
     return gameCodeService.getGameCodesForGameIdea(gameIdeaId);
   }
 
-  @GetMapping("/public/getzip/{gameIdeaId}/{codeLanguage}")
-  public void getGameCodesForGameIdea(HttpServletResponse response, @PathVariable Long gameIdeaId, @PathVariable String codeLanguage){
-    List<GameCode> gameCodes = gameCodeService.getGameCodesForGameIdea(gameIdeaId);
-    for(GameCode gameCode : gameCodes){
-      if(gameCode.getCodeLanguage().getLanguage().equals(codeLanguage)) {
-        try {
-          response.setContentType("application/zip");
-          response.setHeader("Content-Disposition", "attachment; filename=" + gameCode.getGameIdea().getTitle() + "-" + gameCode.getCodeLanguage().getLanguage() + ".zip");
-          response.getOutputStream().write(gameCode.getZipFile());
-          response.flushBuffer();
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-      }
-    }
+  @GetMapping("/public/download/{gameCodeId}")
+  public ResponseEntity<Resource> downloadCode(@PathVariable Long gameCodeId) throws IOException {
+    File file = gameCodeService.getZipFileForGameCode(gameCodeId);
+    ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(file.toPath()));
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + file.toPath().getFileName().toString())
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .contentLength(resource.contentLength())
+                .body(resource);
+ 
   }
 }

@@ -1,12 +1,17 @@
 package com.example.gamegenerator.service;
 
+import com.example.gamegenerator.dto.CodeClassResponse;
+import com.example.gamegenerator.dto.CodeLanguageResponse;
 import com.example.gamegenerator.dto.GameCodeRequest;
+import com.example.gamegenerator.dto.GameCodeResponse;
 import com.example.gamegenerator.dto.OpenApiResponse;
 import com.example.gamegenerator.entity.*;
 import com.example.gamegenerator.repository.CodeClassRepository;
 import com.example.gamegenerator.repository.CodeLanguageRepository;
 import com.example.gamegenerator.repository.GameCodeRepository;
 import com.example.gamegenerator.repository.GameIdeaRepository;
+import com.example.gamegenerator.utils.ZipUtils;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
@@ -22,6 +27,7 @@ import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
 @Service
@@ -74,7 +80,7 @@ public class GameCodeService {
     return GET_CODE_FIXED_PROMPT;
   }
 
-  public GameCode getOrGenerateGameCode(Jwt jwt, GameCodeRequest gameCodeRequest){
+  public GameCodeResponse getOrGenerateGameCode(Jwt jwt, GameCodeRequest gameCodeRequest){
     GameIdea gameIdea = gameIdeaRepository.findById(gameCodeRequest.getGameIdeaId())
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "No such game"));
     if (gameCodeRequest.getLanguage() == null || gameCodeRequest.getLanguage().isEmpty()) {
@@ -83,8 +89,10 @@ public class GameCodeService {
     Optional<GameCode> databaseGameCode = gameCodeRepository.findGameCodeByCodeLanguage_LanguageAndGameIdea(gameCodeRequest.getLanguage(), gameIdea);
     if (databaseGameCode.isPresent()) {
       System.out.println("## Found cached game code in database for " + gameIdea.getTitle() + " in " + gameCodeRequest.getLanguage());
-      return databaseGameCode.get();
+      GameCode gameCode = databaseGameCode.get();
+      return createResponse(gameCode);
     }
+
     System.out.println("## No cache: Generating game code in database for " + gameIdea.getTitle() + " in " + gameCodeRequest.getLanguage());
 
     GameCode gameCode = new GameCode();
@@ -141,88 +149,55 @@ public class GameCodeService {
             .block();
 
     List<CodeClass> savedCodeClasses = codeClassRepository.saveAll(codeClasses);
-
-    gameCode.setZipFile(zipGameCode(savedCodeClasses.stream().map(CodeClass::getName).collect(Collectors.toList()), codeLanguage.getFileExtension(), savedCodeClasses.stream().map(CodeClass::getCode).collect(Collectors.toList())));
+    
     gameCode.setGameIdea(gameIdea);
     gameCode.setCodeClasses(savedCodeClasses);
-    return gameCodeRepository.save(gameCode);
+    gameCode = gameCodeRepository.save(gameCode);
+    return createResponse(gameCode);
   }
 
-  private byte[] zipGameCode(List<String> classNames, String fileExtension, List<String> classCodes) {
-    System.out.println("## Zipping files...");
-    try {
-      // Create a ByteArrayOutputStream to write the code files to
-      ByteArrayOutputStream baos = new ByteArrayOutputStream();
-      // Create a ZipOutputStream to write the ZIP file to
-      ZipOutputStream zos = new ZipOutputStream(baos);
-      // Create a byte array to use as the buffer
-      byte[] buffer = new byte[1024];
-
-      // Write each class code to the ByteArrayOutputStream
-      for (int i = 0; i < classNames.size(); i++) {
-        // Create a ZipEntry with the class name and extension
-        ZipEntry ze = new ZipEntry(classNames.get(i) + fileExtension);
-        // Put the zip entry in the ZipOutputStream
-        zos.putNextEntry(ze);
-        // Write the class code to the ByteArrayOutputStream
-        baos.write(classCodes.get(i).getBytes());
-        // Close the ZipEntry
-        zos.closeEntry();
-      }
-
-      // Close the ZipOutputStream
-      zos.close();
-      System.out.println("## Zip file created successfully.");
-      return baos.toByteArray();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    return null;
-  }
-
-  private byte[] zipGameCodeAndSave(List<String> classNames, String fileExtension, List<String> classCodes) {
-    System.out.println("## Zipping files...");
-    String zipFileName = "gameCode.zip";
-    try {
-      // Create a FileOutputStream to write the zip file to the hard drive
-      FileOutputStream fos = new FileOutputStream(zipFileName);
-      // Create a ZipOutputStream to write the ZIP file to
-      ZipOutputStream zos = new ZipOutputStream(fos);
-      // Create a byte array to use as the buffer
-      byte[] buffer = new byte[1024];
-
-      // Write each class code to the ByteArrayOutputStream
-      for (int i = 0; i < classNames.size(); i++) {
-        // Create a ZipEntry with the class name and extension
-        ZipEntry ze = new ZipEntry(classNames.get(i) + fileExtension);
-        // Put the zip entry in the ZipOutputStream
-        zos.putNextEntry(ze);
-        // Write the class code to the ZipOutputStream
-        ByteArrayInputStream bais = new ByteArrayInputStream(classCodes.get(i).getBytes());
-        int len;
-        while ((len = bais.read(buffer)) > 0) {
-          zos.write(buffer, 0, len);
-        }
-        bais.close();
-        // Close the ZipEntry
-        zos.closeEntry();
-      }
-
-      // Close the ZipOutputStream
-      zos.close();
-      fos.close();
-      System.out.println("## Zip file created successfully.");
-      return Files.readAllBytes(Paths.get(zipFileName));
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    return null;
-  }
-
-  public List<GameCode> getGameCodesForGameIdea(Long gameIdeaId) {
+  public List<GameCodeResponse> getGameCodesForGameIdea(Long gameIdeaId) {
     GameIdea gameIdea = gameIdeaRepository.findById(gameIdeaId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "No such game"));
-    Optional<List<GameCode>> optionalGameCodes = gameCodeRepository.findGameCodesByGameIdea(gameIdea);
-    return optionalGameCodes.orElseGet(ArrayList::new);
+    List<GameCode> optionalGameCodes = gameCodeRepository.findGameCodesByGameIdea(gameIdea);
+    return optionalGameCodes.stream().map(gameCode -> createResponse(gameCode)).collect(Collectors.toList());
+  }
+
+  /**
+   * A method that returns a downloadable zip file of the game code
+   * @param gameCodeId
+   * @return Zip file
+   */
+  public File getZipFileForGameCode(Long gameCodeId) {
+    GameCode gameCode = gameCodeRepository.findById(gameCodeId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "No such game code"));
+    // Get language and code information
+    CodeLanguage codeLanguage = gameCode.getCodeLanguage();
+    List<CodeClass> codeClasses = gameCode.getCodeClasses();
+    List<String> codeClassNames = codeClasses.stream().map(codeClass -> codeClass.getName()).collect(Collectors.toList());
+    List<String> codeClassCodes = codeClasses.stream().map(codeClass -> codeClass.getCode()).collect(Collectors.toList());
+    
+    // create temp files
+    List<File> files = ZipUtils.writeCodeToTempFiles(codeLanguage.getFileExtension(), codeClassNames, codeClassCodes);
+    
+    // Create zip name
+    String zipName = gameCode.getGameIdea().getTitle() + "_" + codeLanguage.getLanguage() + ".zip";
+
+    // Create zip file
+    File zipFile = ZipUtils.writeFilesToZip(zipName, files);
+
+    // Return zip file
+    return zipFile;
+  }
+
+  /**
+   * A method to create a response from a game code
+   * @param gameCode
+   * @return GameCodeResponse
+   */
+  private GameCodeResponse createResponse(GameCode gameCode) {
+    CodeLanguageResponse codeLanguageResponse = new CodeLanguageResponse(gameCode.getCodeLanguage());
+    List<CodeClassResponse> codeClassResponses = gameCode.getCodeClasses().stream().map(codeClass -> new CodeClassResponse(codeClass)).collect(Collectors.toList());
+    return new GameCodeResponse(gameCode.getId(), codeLanguageResponse, codeClassResponses);
   }
 }
