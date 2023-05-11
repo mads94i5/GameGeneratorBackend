@@ -21,7 +21,6 @@ import com.example.gamegenerator.security.enums.Role;
  * which should only be the case when running the application locally.
  */
 @Configuration
-@Profile("dev")
 public class DevUserConfig implements ApplicationRunner {
 
     @Value("${app.default-user}")
