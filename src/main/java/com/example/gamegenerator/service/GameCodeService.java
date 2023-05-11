@@ -16,6 +16,8 @@ import reactor.core.scheduler.Schedulers;
 import reactor.util.retry.Retry;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -156,27 +158,61 @@ public class GameCodeService {
       // Create a byte array to use as the buffer
       byte[] buffer = new byte[1024];
 
+      // Write each class code to the ByteArrayOutputStream
       for (int i = 0; i < classNames.size(); i++) {
         // Create a ZipEntry with the class name and extension
         ZipEntry ze = new ZipEntry(classNames.get(i) + fileExtension);
         // Put the zip entry in the ZipOutputStream
         zos.putNextEntry(ze);
         // Write the class code to the ByteArrayOutputStream
-        baos.reset(); // Clear the byte array output stream
         baos.write(classCodes.get(i).getBytes());
-        // Write the ByteArrayOutputStream to the ZipOutputStream
-        ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+        // Close the ZipEntry
+        zos.closeEntry();
+      }
+
+      // Close the ZipOutputStream
+      zos.close();
+      System.out.println("## Zip file created successfully.");
+      return baos.toByteArray();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+  private byte[] zipGameCodeAndSave(List<String> classNames, String fileExtension, List<String> classCodes) {
+    System.out.println("## Zipping files...");
+    String zipFileName = "gameCode.zip";
+    try {
+      // Create a FileOutputStream to write the zip file to the hard drive
+      FileOutputStream fos = new FileOutputStream(zipFileName);
+      // Create a ZipOutputStream to write the ZIP file to
+      ZipOutputStream zos = new ZipOutputStream(fos);
+      // Create a byte array to use as the buffer
+      byte[] buffer = new byte[1024];
+
+      // Write each class code to the ByteArrayOutputStream
+      for (int i = 0; i < classNames.size(); i++) {
+        // Create a ZipEntry with the class name and extension
+        ZipEntry ze = new ZipEntry(classNames.get(i) + fileExtension);
+        // Put the zip entry in the ZipOutputStream
+        zos.putNextEntry(ze);
+        // Write the class code to the ZipOutputStream
+        ByteArrayInputStream bais = new ByteArrayInputStream(classCodes.get(i).getBytes());
         int len;
         while ((len = bais.read(buffer)) > 0) {
           zos.write(buffer, 0, len);
         }
-        zos.closeEntry();
         bais.close();
+        // Close the ZipEntry
+        zos.closeEntry();
       }
 
+      // Close the ZipOutputStream
       zos.close();
+      fos.close();
       System.out.println("## Zip file created successfully.");
-      return baos.toByteArray();
+      return Files.readAllBytes(Paths.get(zipFileName));
     } catch (IOException e) {
       e.printStackTrace();
     }
