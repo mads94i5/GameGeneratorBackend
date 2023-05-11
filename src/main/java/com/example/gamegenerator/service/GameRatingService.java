@@ -44,6 +44,7 @@ public class GameRatingService {
         }
         
         double rating = gameIdeaRepository.getPercentageOfTotalScoreForGameIdea(gameIdea.get().getId(), GameRating.MAX_SCORE).orElse(0.0);
-        return new GameRatingResponse(gameIdea.get().getId(), rating);
+        int numberOfRatings = gameIdeaRepository.getNumberOfRatingsForGameIdea(gameIdea.get().getId());
+        return new GameRatingResponse(gameIdea.get().getId(), rating, numberOfRatings);
     }
 }

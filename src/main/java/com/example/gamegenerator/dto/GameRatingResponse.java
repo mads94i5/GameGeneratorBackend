@@ -12,4 +12,5 @@ import lombok.Setter;
 public class GameRatingResponse {
     private Long gameIdeaId;
     private double totalScoreInPercent;
+    private int numberOfRatings;
 }

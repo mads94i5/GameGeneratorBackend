@@ -26,7 +26,8 @@ public class GameIdeaResponse {
   private boolean isGenerated;
   private User user;
   private double totalRatingInPercent;
-  public GameIdeaResponse convert(GameIdea gameIdea, double totalRatingInPercent){
+  private int numberOfRatings;
+  public GameIdeaResponse convert(GameIdea gameIdea, double totalRatingInPercent, int numberOfRatings){
     this.id = gameIdea.getId();
     this.title = gameIdea.getTitle();
     this.description = gameIdea.getDescription();
@@ -37,6 +38,7 @@ public class GameIdeaResponse {
     this.totalRatingInPercent = totalRatingInPercent;
     this.isGenerated = gameIdea.isGenerated();
     this.user = gameIdea.getUser();
+    this.numberOfRatings = numberOfRatings;
     return this;
   }
 }

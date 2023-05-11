@@ -48,7 +48,8 @@ public class GameIdeaService {
       return null;
     }
     double rating = gameIdeaRepository.getPercentageOfTotalScoreForGameIdea(id, GameRating.MAX_SCORE).orElse(0.0);
-    gameIdeaResponse.convert(gameIdea, rating);
+    int numberOfRatings = gameIdeaRepository.getNumberOfRatingsForGameIdea(id);
+    gameIdeaResponse.convert(gameIdea, rating, numberOfRatings);
     return gameIdeaResponse;
   }
 
@@ -56,7 +57,8 @@ public class GameIdeaService {
     Page<GameIdea> gameIdeaPage = gameIdeaRepository.findAll(pageable);
     List<GameIdea> gameIdeaList = gameIdeaPage.getContent();
     return gameIdeaList.stream()
-        .map(g -> new GameIdeaResponse().convert(g, gameIdeaRepository.getPercentageOfTotalScoreForGameIdea(g.getId(), GameRating.MAX_SCORE).orElse(0.0)))
+        .map(g -> new GameIdeaResponse().convert(g, gameIdeaRepository.getPercentageOfTotalScoreForGameIdea(g.getId(), 
+          GameRating.MAX_SCORE).orElse(0.0), gameIdeaRepository.getNumberOfRatingsForGameIdea(g.getId())))
         .collect(Collectors.toList());
   }
 
@@ -65,7 +67,8 @@ public class GameIdeaService {
     List<GameIdea> gameIdeaList = gameIdeaPage.getContent();
 
     return gameIdeaList.stream()
-        .map(g -> new GameIdeaResponse().convert(g, gameIdeaRepository.getPercentageOfTotalScoreForGameIdea(g.getId(), GameRating.MAX_SCORE).orElse(0.0)))
+        .map(g -> new GameIdeaResponse().convert(g, gameIdeaRepository.getPercentageOfTotalScoreForGameIdea(g.getId(), 
+          GameRating.MAX_SCORE).orElse(0.0), gameIdeaRepository.getNumberOfRatingsForGameIdea(g.getId())))
         .collect(Collectors.toList());
   }
 
@@ -117,7 +120,7 @@ public class GameIdeaService {
     }
     similarGameRepository.saveAll(game.getSimilarGames());
     game = gameIdeaRepository.save(game);
-    gameIdeaResponse.convert(game, 0.0);
+    gameIdeaResponse.convert(game, 0.0, 0);
     return gameIdeaResponse;
   }
 

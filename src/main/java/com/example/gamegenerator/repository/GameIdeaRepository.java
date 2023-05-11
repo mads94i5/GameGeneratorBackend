@@ -29,4 +29,12 @@ public interface GameIdeaRepository extends JpaRepository<GameIdea, Long> {
   Optional<Double> getPercentageOfTotalScoreForGameIdea(@Param("id") Long id,
                                               @Param("maxScore") Double maxScore);
 
+  /**
+   * Find number of ratings for a given game idea.
+   */
+  @Query("SELECT COUNT(rating) " +
+           "FROM GameRating rating " +
+           "WHERE rating.gameIdea.id = :id")
+  int getNumberOfRatingsForGameIdea(@Param("id") Long id);
+
 }
