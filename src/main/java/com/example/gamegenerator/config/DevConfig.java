@@ -15,9 +15,6 @@ import org.springframework.context.annotation.Profile;
 @Profile("dev")
 public class DevConfig implements ApplicationRunner {
 
-  @Value("${app.env}")
-  private String environment;
-
   private GameIdeaRepository gameIdeaRepository;
   private GameRatingRepository gameRatingRepository;
 
