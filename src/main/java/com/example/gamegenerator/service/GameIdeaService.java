@@ -26,8 +26,6 @@ public class GameIdeaService {
   private final UserService userService;
   private final SimilarGameRepository similarGameRepository;
   private final ApiService apiService;
-  private final WebClient client = WebClient.create();
-
 
   public GameIdeaService(GameIdeaRepository gameIdeaRepository,
                          UserRepository userRepository,
@@ -72,7 +70,7 @@ public class GameIdeaService {
         .collect(Collectors.toList());
   }
 
-  public GameIdeaResponse createGameInfo(Jwt jwt, GameIdeaCreateRequest gameIdeaCreateRequest) {
+  public GameIdeaResponse createGameIdea(Jwt jwt, GameIdeaCreateRequest gameIdeaCreateRequest) {
     User user = userService.checkIfUserHasXCreditsAndUse(jwt, 1);
     gameIdeaCreateRequest.setUserId(user.getUsername());
 
@@ -89,7 +87,7 @@ public class GameIdeaService {
     return getGameIdeaResponseFromMono(gameIdeaResponse, gameIdea, gameIdeaCreateRequest);
   }
 
-  public GameIdeaResponse createGeneratedGameInfo(Jwt jwt, GameIdeaGenerateRequest gameIdeaGenerateRequest) {
+  public GameIdeaResponse createGeneratedGameIdea(Jwt jwt, GameIdeaGenerateRequest gameIdeaGenerateRequest) {
     User user = userService.checkIfUserHasXCreditsAndUse(jwt, 1);
     gameIdeaGenerateRequest.setUserId(user.getUsername());
 

@@ -24,13 +24,13 @@ public class GameIdeaController {
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @PostMapping("/create/generated")
     public GameIdeaResponse createGeneratedGame(@AuthenticationPrincipal Jwt jwt, @RequestBody GameIdeaGenerateRequest gameIdeaGenerateRequest) {
-        return gameIdeaService.createGeneratedGameInfo(jwt, gameIdeaGenerateRequest);
+        return gameIdeaService.createGeneratedGameIdea(jwt, gameIdeaGenerateRequest);
     }
 
     @PreAuthorize("hasAnyRole('ADMIN')")
     @PostMapping("/create/user")
     public GameIdeaResponse createGame(@AuthenticationPrincipal Jwt jwt, @RequestBody GameIdeaCreateRequest gameIdeaCreateRequest) {
-        return gameIdeaService.createGameInfo(jwt, gameIdeaCreateRequest);
+        return gameIdeaService.createGameIdea(jwt, gameIdeaCreateRequest);
     }
 
     @GetMapping("/public/get/{id}")
