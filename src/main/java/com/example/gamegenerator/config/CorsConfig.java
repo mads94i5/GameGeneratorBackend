@@ -13,9 +13,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
         //Add deployed frontend url to this list
         "http://localhost:5500",
         "http://127.0.0.1:5500",
-        "https://gameideagenerator.thomassa.dk",
-        "agreeable-moss-0a2f48003.3.azurestaticapps.net"
-
+        "https://gamegenerator.swalkstudios.com",
+        "black-island-036ceea03.3.azurestaticapps.net"
     };
 
     @Override
